@@ -1,0 +1,612 @@
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\package.json
+
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\public\index.html
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Web site created using create-react-app"
+    />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <!--
+      manifest.json provides metadata used when your web app is installed on a
+      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+    -->
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!--
+      Notice the use of %PUBLIC_URL% in the tags above.
+      It will be replaced with the URL of the `public` folder during the build.
+      Only files inside the `public` folder can be referenced from the HTML.
+
+      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+      work correctly both with client-side routing and a non-root public URL.
+      Learn how to configure a non-root public URL by running `npm run build`.
+    -->
+    <title>React App</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+  </body>
+</html>
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\public\manifest.json
+
+{
+  "short_name": "React App",
+  "name": "Create React App Sample",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\App.css
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\App.js
+
+import React from 'react';
+import AthleteForm from './components/AthleteForm';
+import AthleteList from './components/AthleteList';
+
+const App = () => (
+    <div>
+        <h1>Athlete Assessment Tracker</h1>
+        <AthleteForm />
+        <AthleteList />
+    </div>
+);
+
+export default App;
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\App.test.js
+
+import { render, screen } from '@testing-library/react';
+import App from './App';
+
+test('renders learn react link', () => {
+  render(<App />);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteForm.js
+
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const AthleteForm = () => {
+    const [formData, setFormData] = useState({ name: '', height: '', weight: '', age: '', dob: '' });
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:5000/api/athletes', formData);
+            alert("Athlete added!");
+            setFormData({ name: '', height: '', weight: '', age: '', dob: '' });
+        } catch (error) {
+            console.error("Error adding athlete:", error);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} />
+            <input name="height" placeholder="Height" value={formData.height} onChange={handleChange} />
+            <input name="weight" placeholder="Weight" value={formData.weight} onChange={handleChange} />
+            <input name="age" placeholder="Age" value={formData.age} onChange={handleChange} />
+            <input name="dob" type="date" value={formData.dob} onChange={handleChange} />
+            <button type="submit">Add Athlete</button>
+        </form>
+    );
+};
+
+export default AthleteForm;
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteList.js
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const AthleteList = () => {
+    const [athletes, setAthletes] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axios.get('http://localhost:5000/api/athletes');
+                setAthletes(response.data);
+            } catch (error) {
+                console.error("Error fetching athletes:", error);
+            }
+        };
+        fetchData();
+    }, []);
+
+    return (
+        <ul>
+            {athletes.map(athlete => (
+                <li key={athlete._id}>{athlete.name} - {athlete.age} years old</li>
+            ))}
+        </ul>
+    );
+};
+
+export default AthleteList;
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\index.css
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\index.js
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\reportWebVitals.js
+
+const reportWebVitals = onPerfEntry => {
+  if (onPerfEntry && onPerfEntry instanceof Function) {
+    import('web-vitals').then(({ getCLS, getFID, getFCP, getLCP, getTTFB }) => {
+      getCLS(onPerfEntry);
+      getFID(onPerfEntry);
+      getFCP(onPerfEntry);
+      getLCP(onPerfEntry);
+      getTTFB(onPerfEntry);
+    });
+  }
+};
+
+export default reportWebVitals;
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\setupTests.js
+
+// jest-dom adds custom jest matchers for asserting on DOM nodes.
+// allows you to do things like:
+// expect(element).toHaveTextContent(/react/i)
+// learn more: https://github.com/testing-library/jest-dom
+import '@testing-library/jest-dom';
+
+
+// Content from: C:\MyPrograms\AthleteDB\combineAllFiles.js
+
+const fs = require('fs');
+const path = require('path');
+
+// Output file paths
+const structureFile = path.join(__dirname, 'structure.txt');
+const combinedFile = path.join(__dirname, 'combinedfiles.txt');
+
+// Relevant file extensions to include for concatenation
+const relevantExtensions = ['.js', '.json', '.jsx', '.css', '.html'];
+
+// Directories and specific files to exclude
+const excludedDirs = ['node_modules', '.git', '.vscode', 'build', 'dist', 'logs', 'coverage'];
+const excludedFiles = ['package-lock.json']; // Exclude package-lock.json specifically
+const excludePatterns = [
+  'node_modules', 'package-lock.json', '*.md', '.gitignore', 'LICENSE', 
+  'structure.txt', 'tests', 'deploy.sh', '.git', '.vscode'
+]; // For directory structure
+const maxSize = 1024 * 1024; // 1MB size limit for files
+
+// Initialize the output file for directory structure
+fs.writeFileSync(structureFile, '');
+
+// Function to recursively list directories and files, excluding certain files and directories
+function listDirectory(dirPath, indent = '') {
+  fs.readdirSync(dirPath, { withFileTypes: true }).forEach((dirent) => {
+    const fullPath = path.join(dirPath, dirent.name);
+
+    // If it's a directory and not in the exclude list, process it
+    if (dirent.isDirectory() && !excludedDirs.includes(dirent.name)) {
+      fs.appendFileSync(structureFile, `${indent}|-- ${dirent.name}\n`);
+      listDirectory(fullPath, indent + '    '); // Recurse into the directory with increased indentation
+    } else if (!dirent.isDirectory()) {
+      const ext = path.extname(dirent.name);
+      if (!excludePatterns.includes(dirent.name) && !excludePatterns.includes(ext)) {
+        fs.appendFileSync(structureFile, `${indent}|-- ${dirent.name}\n`);
+      }
+    }
+  });
+}
+
+// Function to recursively find all relevant files in a directory for concatenation
+function getAllFiles(dirPath, arrayOfFiles = []) {
+  const files = fs.readdirSync(dirPath);
+
+  files.forEach(function (file) {
+    const filePath = path.join(dirPath, file);
+
+    if (fs.statSync(filePath).isDirectory()) {
+      if (!excludedDirs.includes(file)) {
+        arrayOfFiles = getAllFiles(filePath, arrayOfFiles);
+      }
+    } else {
+      // Only include relevant file extensions and exclude oversized or excluded files
+      const ext = path.extname(file);
+      const fileSize = fs.statSync(filePath).size;
+      const fileName = path.basename(filePath);
+
+      if (
+        relevantExtensions.includes(ext) &&
+        !excludedFiles.includes(fileName) &&
+        fileSize <= maxSize
+      ) {
+        arrayOfFiles.push(filePath);
+      }
+    }
+  });
+
+  return arrayOfFiles;
+}
+
+// Function to concatenate files into a single file
+function concatenateFiles(fileList, outputPath) {
+  let combinedContent = '';
+
+  fileList.forEach(filePath => {
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      combinedContent += `\n\n// Content from: ${filePath}\n\n` + fileContent;
+    } else {
+      console.error(`File not found: ${filePath}`);
+    }
+  });
+
+  fs.writeFileSync(outputPath, combinedContent, 'utf8');
+  console.log(`Files have been combined into ${outputPath}`);
+}
+
+// Start listing from the current directory and output directory structure to structure.txt
+listDirectory('.');
+
+// Get all relevant files from the backend and frontend directories
+const allFiles = getAllFiles(__dirname);
+//const frontendFiles = getAllFiles(path.join(__dirname, 'frontend'));
+
+// Combine both arrays of files for concatenation
+//const allFiles = backendFiles.concat(frontendFiles);
+
+// Run the concatenation function with all relevant files
+concatenateFiles(allFiles, combinedFile);
+
+console.log(`Directory structure has been written to ${structureFile}`);
+
+
+// Content from: C:\MyPrograms\AthleteDB\liststructure.js
+
+const fs = require('fs');
+const path = require('path');
+
+// Set the output file name
+const outputFile = 'structure.txt';
+
+// Initialize the output file
+fs.writeFileSync(outputFile, '');
+
+// Patterns to exclude
+const excludePatterns = [
+  'node_modules',
+  'package-lock.json',
+  '.md',
+  '.gitignore',
+  'LICENSE',
+  'structure.txt',
+  'tests',
+  'deploy.sh',
+  '.git'
+];
+
+// Function to recursively list directories and files, excluding certain files and directories
+function listDirectory(dirPath, indent = '') {
+  // Read all directories and files in the current path
+  fs.readdirSync(dirPath, { withFileTypes: true }).forEach((dirent) => {
+    const fullPath = path.join(dirPath, dirent.name);
+
+    // If it's a directory and not in the exclude list, process it
+    if (
+      dirent.isDirectory() &&
+      !excludePatterns.includes(dirent.name)
+    ) {
+      // Write the directory name to the output file with indentation
+      fs.appendFileSync(outputFile, `${indent}|-- ${dirent.name}\n`);
+
+      // Recurse into the directory with increased indentation
+      listDirectory(fullPath, indent + '    ');
+    } else if (!dirent.isDirectory()) {
+      const ext = path.extname(dirent.name);
+      // If it's a file and doesn't match any exclude pattern, write it to the output file
+      if (!excludePatterns.includes(dirent.name) && !excludePatterns.includes(ext)) {
+        fs.appendFileSync(outputFile, `${indent}|-- ${dirent.name}\n`);
+      }
+    }
+  });
+}
+
+// Start listing from the current directory
+listDirectory('.');
+
+console.log(`Directory structure has been written to ${outputFile}`);
+
+
+// Content from: C:\MyPrograms\AthleteDB\server\config\db.js
+
+// server/config/db.js
+const mongoose = require('mongoose');
+
+const connectDB = async () => {
+    try {
+        await mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log("MongoDB connected");
+    } catch (error) {
+        console.error("MongoDB connection error:", error);
+        process.exit(1);
+    }
+};
+
+module.exports = connectDB;
+
+
+// Content from: C:\MyPrograms\AthleteDB\server\models\Athlete.js
+
+// server/models/Athlete.js
+const mongoose = require('mongoose');
+
+const AthleteSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    height: { type: String },
+    weight: { type: String },
+    age: { type: Number },
+    dob: { type: Date },
+    assessments: [{
+        date: { type: Date, default: Date.now },
+        movementScreen: {
+            overheadSquat: { type: String },
+            hurdleStep: { type: String },
+            inlineLunge: { type: String },
+            apleysScratch: { type: String },
+            comments: { type: String },
+        },
+        performanceMeasurements: {
+            verticalJump: { type: Number },
+            broadJump: { type: Number },
+            sprint10yd: { type: Number },
+        },
+    }],
+});
+
+module.exports = mongoose.model('Athlete', AthleteSchema);
+
+
+// Content from: C:\MyPrograms\AthleteDB\server\package.json
+
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "mongoose": "^8.8.1"
+  }
+}
+
+
+// Content from: C:\MyPrograms\AthleteDB\server\routes\athleteRoutes.js
+
+// server/routes/athleteRoutes.js
+const express = require('express');
+const Athlete = require('../models/Athlete');
+const router = express.Router();
+
+// Create new athlete
+router.post('/athletes', async (req, res) => {
+    try {
+        const athlete = new Athlete(req.body);
+        await athlete.save();
+        res.status(201).json(athlete);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// Get all athletes
+router.get('/athletes', async (req, res) => {
+    try {
+        const athletes = await Athlete.find();
+        res.json(athletes);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+module.exports = router;
+
+
+// Content from: C:\MyPrograms\AthleteDB\server\server.js
+
+// server/server.js
+const express = require('express');
+const dotenv = require('dotenv');
+const cors = require('cors');
+const connectDB = require('./config/db');
+const athleteRoutes = require('./routes/athleteRoutes');
+
+dotenv.config();
+connectDB();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use('/api', athleteRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
