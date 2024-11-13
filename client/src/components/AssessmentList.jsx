@@ -1,5 +1,4 @@
-// src/components/AssessmentList.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -56,7 +55,43 @@ const AssessmentList = () => {
     direction: SORT_DIRECTIONS.DESC
   });
 
-  const fetchAssessments = async () => {
+  const sortAssessments = useCallback((assessments, field, direction) => {
+    return [...assessments].sort((a, b) => {
+      if (field === SORT_FIELDS.DATE) {
+        const dateA = new Date(a[field]);
+        const dateB = new Date(b[field]);
+        return direction === SORT_DIRECTIONS.ASC 
+          ? dateA - dateB 
+          : dateB - dateA;
+      }
+      
+      if (field === SORT_FIELDS.NAME) {
+        const nameA = a[field].toLowerCase();
+        const nameB = b[field].toLowerCase();
+        return direction === SORT_DIRECTIONS.ASC 
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      }
+      return 0;
+    });
+  }, []);
+
+  const applyFilters = useCallback((data, search) => {
+    let filtered = [...data];
+    
+    if (search) {
+      filtered = filtered.filter(assessment => 
+        assessment.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    filtered = sortAssessments(filtered, sortConfig.field, sortConfig.direction);
+    
+    setFilteredAssessments(filtered);
+  }, [sortAssessments, sortConfig.field, sortConfig.direction]);
+
+  const fetchAssessments = useCallback(async () => {
     try {
       let url = 'http://localhost:5000/api/assessments';
       const params = new URLSearchParams();
@@ -77,43 +112,7 @@ const AssessmentList = () => {
       setError(err.message);
       setLoading(false);
     }
-  };
-
-  const sortAssessments = (assessments, field, direction) => {
-    return [...assessments].sort((a, b) => {
-      if (field === SORT_FIELDS.DATE) {
-        const dateA = new Date(a[field]);
-        const dateB = new Date(b[field]);
-        return direction === SORT_DIRECTIONS.ASC 
-          ? dateA - dateB 
-          : dateB - dateA;
-      }
-      
-      if (field === SORT_FIELDS.NAME) {
-        const nameA = a[field].toLowerCase();
-        const nameB = b[field].toLowerCase();
-        return direction === SORT_DIRECTIONS.ASC 
-          ? nameA.localeCompare(nameB)
-          : nameB.localeCompare(nameA);
-      }
-      return 0;
-    });
-  };
-
-  const applyFilters = (data, search) => {
-    let filtered = [...data];
-    
-    if (search) {
-      filtered = filtered.filter(assessment => 
-        assessment.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    
-    // Apply sorting
-    filtered = sortAssessments(filtered, sortConfig.field, sortConfig.direction);
-    
-    setFilteredAssessments(filtered);
-  };
+  }, [dateRange.startDate, dateRange.endDate, searchTerm, applyFilters]);
 
   const handleSearch = (event) => {
     const value = event.target.value;
@@ -155,7 +154,7 @@ const AssessmentList = () => {
 
   useEffect(() => {
     fetchAssessments();
-  }, [dateRange.startDate, dateRange.endDate, sortConfig]);
+  }, [fetchAssessments]);
 
   const handleDelete = async () => {
     try {
@@ -190,8 +189,8 @@ const AssessmentList = () => {
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Athlete Assessments</h1>
           <Link to="/assessments/add">
-  <Button>Add New Assessment</Button>
-</Link>
+            <Button>Add New Assessment</Button>
+          </Link>
         </div>
         
         {/* Filters Section */}

@@ -1,5 +1,7 @@
 |-- client
+    |-- components.json
     |-- package.json
+    |-- postcss.config.js
     |-- public
         |-- favicon.ico
         |-- index.html
@@ -13,22 +15,46 @@
         |-- App.js
         |-- App.test.js
         |-- components
-            |-- AthleteForm.js
-            |-- AthleteList.js
+            |-- AssessmentDetail.jsx
+            |-- AssessmentList.jsx
+            |-- AthleteAssessmentForm.js
+            |-- AthleteDetail.jsx
+            |-- Dashboard.js
+            |-- Layout.jsx
+            |-- Navbar.js
+            |-- ui
+                |-- alert-dialog.jsx
+                |-- button.jsx
+                |-- card.jsx
+                |-- input.jsx
+                |-- label.jsx
+                |-- textarea.jsx
+        |-- hooks
+            |-- useAssessments.js
         |-- index.css
         |-- index.js
+        |-- lib
+            |-- queryClient.js
+            |-- utils.js
         |-- logo.svg
         |-- reportWebVitals.js
+        |-- services
+            |-- api.js
         |-- setupTests.js
+    |-- tailwind.config.js
 |-- combineAllFiles.js
+|-- combinedfiles.txt
 |-- liststructure.js
+|-- README.md
 |-- server
-    |-- .env
     |-- config
         |-- db.js
+    |-- controllers
+        |-- athleteAssessmentController.js
     |-- models
         |-- Athlete.js
+        |-- AthleteAssessment.js
     |-- package.json
     |-- routes
-        |-- athleteRoutes.js
+        |-- athleteAssessment.js
     |-- server.js

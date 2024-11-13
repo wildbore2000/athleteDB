@@ -1,4 +1,4 @@
-// server/controllers/athleteAssessmentController.js
+// controllers/athleteAssessmentController.js
 const AthleteAssessment = require('../models/AthleteAssessment');
 const asyncHandler = require('express-async-handler');
 
@@ -60,7 +60,7 @@ exports.getAssessment = asyncHandler(async (req, res) => {
 // @route   POST /api/assessments
 exports.createAssessment = asyncHandler(async (req, res) => {
   const assessment = await AthleteAssessment.create(req.body);
-
+  
   res.status(201).json({
     success: true,
     data: assessment
@@ -70,14 +70,14 @@ exports.createAssessment = asyncHandler(async (req, res) => {
 // @desc    Update athlete assessment
 // @route   PUT /api/assessments/:id
 exports.updateAssessment = asyncHandler(async (req, res) => {
-  let assessment = await AthleteAssessment.findById(req.params.id);
+  const assessment = await AthleteAssessment.findById(req.params.id);
 
   if (!assessment) {
     res.status(404);
     throw new Error('Assessment not found');
   }
 
-  assessment = await AthleteAssessment.findByIdAndUpdate(
+  const updatedAssessment = await AthleteAssessment.findByIdAndUpdate(
     req.params.id,
     req.body,
     {
@@ -88,7 +88,7 @@ exports.updateAssessment = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    data: assessment
+    data: updatedAssessment
   });
 });
 

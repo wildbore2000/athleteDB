@@ -1,19 +1,51 @@
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\package.json
+// Content from: C:\MyPrograms\athleteDB\client\components.json
+
+{
+    "$schema": "https://ui.shadcn.com/schema.json",
+    "style": "default",
+    "rsc": false,
+    "tailwind": {
+      "config": "tailwind.config.js",
+      "css": "src/index.css",
+      "baseColor": "slate",
+      "cssVariables": true
+    },
+    "aliases": {
+      "components": "@/components",
+      "utils": "@/lib/utils"
+    }
+  }
+
+// Content from: C:\MyPrograms\athleteDB\client\package.json
 
 {
   "name": "client",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-slot": "^1.0.2",
+    "@tanstack/react-query": "^5.59.20",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "autoprefixer": "^10.4.18",
     "axios": "^1.7.7",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.263.1",
+    "postcss": "^8.4.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.53.2",
+    "react-router-dom": "^6.28.0",
     "react-scripts": "5.0.1",
+    "recharts": "^2.13.3",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^3.4.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -43,7 +75,17 @@
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\public\index.html
+// Content from: C:\MyPrograms\athleteDB\client\postcss.config.js
+
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+
+// Content from: C:\MyPrograms\athleteDB\client\public\index.html
 
 <!DOCTYPE html>
 <html lang="en">
@@ -90,7 +132,7 @@
 </html>
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\public\manifest.json
+// Content from: C:\MyPrograms\athleteDB\client\public\manifest.json
 
 {
   "short_name": "React App",
@@ -119,66 +161,69 @@
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\App.css
+// Content from: C:\MyPrograms\athleteDB\client\src\App.css
 
-.App {
-  text-align: center;
-}
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
+/* client/src/App.css */
+nav {
   background-color: #282c34;
-  min-height: 100vh;
+  padding: 1rem;
+}
+
+nav ul {
+  list-style-type: none;
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
 }
 
-.App-link {
+nav ul li {
+  display: inline;
+}
+
+nav ul li a {
   color: #61dafb;
+  text-decoration: none;
+  font-size: 1.2rem;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+nav ul li a:hover {
+  color: #21a1f1;
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\App.js
+// Content from: C:\MyPrograms\athleteDB\client\src\App.js
 
+// src/App.js
 import React from 'react';
-import AthleteForm from './components/AthleteForm';
-import AthleteList from './components/AthleteList';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
+import Dashboard from './components/Dashboard';
+import AssessmentList from './components/AssessmentList';
+import AthleteAssessmentForm from './components/AthleteAssessmentForm';
+import AssessmentDetail from './components/AssessmentDetail';
 
-const App = () => (
-    <div>
-        <h1>Athlete Assessment Tracker</h1>
-        <AthleteForm />
-        <AthleteList />
-    </div>
-);
+function App() {
+  return (
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/assessments" element={<AssessmentList />} />
+          <Route path="/assessments/add" element={<AthleteAssessmentForm />} />
+          <Route path="/assessments/edit/:id" element={<AthleteAssessmentForm />} />
+          <Route path="/assessments/:id" element={<AssessmentDetail />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Layout>
+    </Router>
+  );
+}
 
 export default App;
 
-
-// Content from: C:\MyPrograms\AthleteDB\client\src\App.test.js
+// Content from: C:\MyPrograms\athleteDB\client\src\App.test.js
 
 import { render, screen } from '@testing-library/react';
 import App from './App';
@@ -190,105 +235,1652 @@ test('renders learn react link', () => {
 });
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteForm.js
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentDetail.jsx
 
+// src/components/AssessmentDetail.jsx
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
-const AthleteForm = () => {
-    const [formData, setFormData] = useState({ name: '', height: '', weight: '', age: '', dob: '' });
+const AssessmentDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [assessment, setAssessment] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  React.useEffect(() => {
+    fetch(`http://localhost:5000/api/assessments/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        setAssessment(data.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [id]);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post('http://localhost:5000/api/athletes', formData);
-            alert("Athlete added!");
-            setFormData({ name: '', height: '', weight: '', age: '', dob: '' });
-        } catch (error) {
-            console.error("Error adding athlete:", error);
-        }
-    };
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/assessments/${id}`, {
+        method: 'DELETE',
+      });
 
-    return (
-        <form onSubmit={handleSubmit}>
-            <input name="name" placeholder="Name" value={formData.name} onChange={handleChange} />
-            <input name="height" placeholder="Height" value={formData.height} onChange={handleChange} />
-            <input name="weight" placeholder="Weight" value={formData.weight} onChange={handleChange} />
-            <input name="age" placeholder="Age" value={formData.age} onChange={handleChange} />
-            <input name="dob" type="date" value={formData.dob} onChange={handleChange} />
-            <button type="submit">Add Athlete</button>
-        </form>
-    );
+      if (!response.ok) {
+        throw new Error('Failed to delete assessment');
+      }
+
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!assessment) return <div>Assessment not found</div>;
+
+  return (
+    <>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Assessment Details</h1>
+        <div className="space-x-2">
+          <Button onClick={() => navigate(`/edit/${id}`)}>
+            Edit Assessment
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            Delete Assessment
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{assessment.name}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold">Basic Information</h3>
+              <p>Age: {assessment.age}</p>
+              <p>Height: {assessment.height?.value} inches</p>
+              <p>Weight: {assessment.weight?.value} lbs</p>
+              <p>Date of Birth: {new Date(assessment.dateOfBirth).toLocaleDateString()}</p>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold">Performance Measurements</h3>
+              <p>Vertical Jump: {assessment.performanceMeasurements?.verticalJump?.value} inches</p>
+              <p>Broad Jump: {assessment.performanceMeasurements?.broadJump?.value} inches</p>
+              <p>10-Yard Sprint: {assessment.performanceMeasurements?.tenYardSprint?.value}s</p>
+            </div>
+          </div>
+
+          {assessment.generalComments && (
+            <div className="mt-6">
+              <h3 className="font-semibold">General Comments</h3>
+              <p>{assessment.generalComments}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              assessment record for {assessment.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
 };
 
-export default AthleteForm;
+export default AssessmentDetail;
 
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentList.jsx
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteList.js
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { 
+  Search, 
+  X, 
+  Trash2, 
+  Eye, 
+  Edit,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown 
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
+const SORT_FIELDS = {
+  NAME: 'name',
+  DATE: 'assessmentDate'
+};
+
+const SORT_DIRECTIONS = {
+  ASC: 'asc',
+  DESC: 'desc'
+};
+
+const AssessmentList = () => {
+  const [assessments, setAssessments] = useState([]);
+  const [filteredAssessments, setFilteredAssessments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateRange, setDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  });
+
+  // Sort state
+  const [sortConfig, setSortConfig] = useState({
+    field: SORT_FIELDS.DATE,
+    direction: SORT_DIRECTIONS.DESC
+  });
+
+  const sortAssessments = useCallback((assessments, field, direction) => {
+    return [...assessments].sort((a, b) => {
+      if (field === SORT_FIELDS.DATE) {
+        const dateA = new Date(a[field]);
+        const dateB = new Date(b[field]);
+        return direction === SORT_DIRECTIONS.ASC 
+          ? dateA - dateB 
+          : dateB - dateA;
+      }
+      
+      if (field === SORT_FIELDS.NAME) {
+        const nameA = a[field].toLowerCase();
+        const nameB = b[field].toLowerCase();
+        return direction === SORT_DIRECTIONS.ASC 
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      }
+      return 0;
+    });
+  }, []);
+
+  const applyFilters = useCallback((data, search) => {
+    let filtered = [...data];
+    
+    if (search) {
+      filtered = filtered.filter(assessment => 
+        assessment.name.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    filtered = sortAssessments(filtered, sortConfig.field, sortConfig.direction);
+    
+    setFilteredAssessments(filtered);
+  }, [sortAssessments, sortConfig.field, sortConfig.direction]);
+
+  const fetchAssessments = useCallback(async () => {
+    try {
+      let url = 'http://localhost:5000/api/assessments';
+      const params = new URLSearchParams();
+      
+      if (dateRange.startDate) params.append('startDate', dateRange.startDate);
+      if (dateRange.endDate) params.append('endDate', dateRange.endDate);
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+
+      const response = await fetch(url);
+      const data = await response.json();
+      setAssessments(data.data);
+      applyFilters(data.data, searchTerm);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }, [dateRange.startDate, dateRange.endDate, searchTerm, applyFilters]);
+
+  const handleSearch = (event) => {
+    const value = event.target.value;
+    setSearchTerm(value);
+    applyFilters(assessments, value);
+  };
+
+  const handleDateChange = (field, value) => {
+    setDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleSort = (field) => {
+    setSortConfig(current => ({
+      field,
+      direction: 
+        current.field === field && current.direction === SORT_DIRECTIONS.ASC
+          ? SORT_DIRECTIONS.DESC
+          : SORT_DIRECTIONS.ASC
+    }));
+  };
+
+  const getSortIcon = (field) => {
+    if (sortConfig.field !== field) {
+      return <ArrowUpDown className="h-4 w-4 text-muted-foreground" />;
+    }
+    return sortConfig.direction === SORT_DIRECTIONS.ASC 
+      ? <ChevronUp className="h-4 w-4" />
+      : <ChevronDown className="h-4 w-4" />;
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setDateRange({ startDate: '', endDate: '' });
+    applyFilters(assessments, '');
+  };
+
+  useEffect(() => {
+    fetchAssessments();
+  }, [fetchAssessments]);
+
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/assessments/${deleteId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete assessment');
+      }
+
+      fetchAssessments();
+    } catch (error) {
+      console.error('Error deleting assessment:', error);
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  return (
+    <>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Athlete Assessments</h1>
+          <Link to="/assessments/add">
+            <Button>Add New Assessment</Button>
+          </Link>
+        </div>
+        
+        {/* Filters Section */}
+        <Card>
+          <CardContent className="pt-6 pb-4">
+            <div className="flex gap-4 items-end">
+              {/* Search Bar - 50% */}
+              <div className="relative flex-[0.5] space-y-1">
+                <Label className="text-sm">Name</Label>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by athlete name..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+
+              {/* Date Filters - 25% each */}
+              <div className="flex-[0.25] space-y-1">
+                <Label className="text-sm">Start Date</Label>
+                <Input
+                  type="date"
+                  value={dateRange.startDate}
+                  onChange={(e) => handleDateChange('startDate', e.target.value)}
+                />
+              </div>
+              <div className="flex-[0.25] space-y-1">
+                <Label className="text-sm">End Date</Label>
+                <Input
+                  type="date"
+                  value={dateRange.endDate}
+                  onChange={(e) => handleDateChange('endDate', e.target.value)}
+                />
+              </div>
+
+              {/* Clear Filters Button */}
+              {(searchTerm || dateRange.startDate || dateRange.endDate) && (
+                <div className="flex-none">
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={clearFilters}
+                    className="h-10 w-10"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sort Controls */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredAssessments.length} assessments
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => handleSort(SORT_FIELDS.NAME)}
+            >
+              Name
+              {getSortIcon(SORT_FIELDS.NAME)}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center gap-2"
+              onClick={() => handleSort(SORT_FIELDS.DATE)}
+            >
+              Date
+              {getSortIcon(SORT_FIELDS.DATE)}
+            </Button>
+          </div>
+        </div>
+
+        {/* Assessment Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredAssessments.map((assessment) => (
+            <Card 
+              key={assessment._id} 
+              className="hover:shadow-md transition-shadow duration-200"
+            >
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle className="font-semibold mb-1">
+                      {assessment.name}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(assessment.assessmentDate).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
+                    onClick={() => setDeleteId(assessment._id)}
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="flex gap-2">
+                  <Link to={`/assessments/${assessment._id}`} className="flex-1">
+                    <Button variant="outline" className="w-full" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </Button>
+                  </Link>
+                  <Link to={`/assessments/edit/${assessment._id}`} className="flex-1">
+                    <Button variant="outline" className="w-full" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              assessment record for {assessments.find(a => a._id === deleteId)?.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-500 hover:bg-red-600" 
+              onClick={handleDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+export default AssessmentList;
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteAssessmentForm.js
+
+// src/components/AthleteAssessmentForm.jsx
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
+import { Textarea } from './ui/textarea';
+import { Label } from './ui/label';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "./ui/alert-dialog";
 
-const AthleteList = () => {
-    const [athletes, setAthletes] = useState([]);
+const MovementScreenTable = ({ register }) => {
+  const movements = [
+    { name: "Overhead Squat", type: "score" },
+    { name: "Hurdle Step", type: "score" },
+    { name: "Inline Lunge", type: "score" },
+    { name: "Apley's Scratch", type: "passfail", key: "apleysScratch" }
+  ];
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axios.get('http://localhost:5000/api/athletes');
-                setAthletes(response.data);
-            } catch (error) {
-                console.error("Error fetching athletes:", error);
-            }
-        };
-        fetchData();
-    }, []);
-
-    return (
-        <ul>
-            {athletes.map(athlete => (
-                <li key={athlete._id}>{athlete.name} - {athlete.age} years old</li>
-            ))}
-        </ul>
-    );
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Movement Screen</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="relative overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs uppercase bg-gray-50">
+              <tr>
+                <th className="px-6 py-3">Movement</th>
+                <th className="px-6 py-3 text-center">Left Side</th>
+                <th className="px-6 py-3 text-center">Right Side</th>
+                <th className="px-6 py-3">Comments</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {movements.map((movement) => {
+                const key = movement.key || movement.name.toLowerCase().replace(/[']/g, '').replace(/\s+/g, '');
+                return (
+                  <tr key={movement.name} className="bg-white">
+                    <td className="px-6 py-4 font-medium">
+                      {movement.name}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center">
+                        {movement.type === 'score' ? (
+                          <Input
+                            type="number"
+                            min="1"
+                            max="3"
+                            className="w-20"
+                            {...register(`movementScreen.${key}.scoreLeft`)}
+                          />
+                        ) : (
+                          <select
+                            className="w-20 h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            {...register(`movementScreen.${key}.scoreLeft`)}
+                            defaultValue=""
+                          >
+                            <option value="">Select</option>
+                            <option value="pass">Pass</option>
+                            <option value="fail">Fail</option>
+                          </select>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center">
+                        {movement.type === 'score' ? (
+                          <Input
+                            type="number"
+                            min="1"
+                            max="3"
+                            className="w-20"
+                            {...register(`movementScreen.${key}.scoreRight`)}
+                          />
+                        ) : (
+                          <select
+                            className="w-20 h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            {...register(`movementScreen.${key}.scoreRight`)}
+                            defaultValue=""
+                          >
+                            <option value="">Select</option>
+                            <option value="pass">Pass</option>
+                            <option value="fail">Fail</option>
+                          </select>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <Input
+                        type="text"
+                        placeholder="Add comments..."
+                        {...register(`movementScreen.${key}.comments`)}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
-export default AthleteList;
+const AthleteAssessmentForm = () => {
+  const { id } = useParams();
+  const [loading, setLoading] = useState(id ? true : false);
+  const navigate = useNavigate();
+  const [showMissingFields, setShowMissingFields] = useState(false);
+  const [missingFields, setMissingFields] = useState([]);
+  const [submissionData, setSubmissionData] = useState(null);
+  
+  const { register, handleSubmit, formState: { errors, ...formState }, reset } = useForm();
+
+  useEffect(() => {
+    if (id) {
+      fetch(`http://localhost:5000/api/assessments/${id}`)
+        .then(res => res.json())
+        .then(response => {
+          const data = {
+            ...response.data,
+            assessmentDate: new Date(response.data.assessmentDate).toISOString().split('T')[0],
+            dateOfBirth: new Date(response.data.dateOfBirth).toISOString().split('T')[0]
+          };
+          reset(data);
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error('Error fetching assessment:', error);
+          setLoading(false);
+        });
+    }
+  }, [id, reset]);
+
+  const checkMissingFields = (data) => {
+    const missing = [];
+  
+    // Check required fields first
+    if (!data.name) missing.push('Name');
+    if (!data.assessmentDate) missing.push('Assessment Date');
+  
+    // Only check optional fields if they're partially filled
+    const apleysScratch = data.movementScreen?.apleysScratch || {};
+    const hasApleysLeft = apleysScratch.scoreLeft;
+    const hasApleysRight = apleysScratch.scoreRight;
+  
+    // Only add Apley's Scratch to missing fields if one side is filled but not the other
+    if ((hasApleysLeft && !hasApleysRight) || (!hasApleysLeft && hasApleysRight)) {
+      if (!hasApleysLeft) missing.push("Apley's Scratch Left Pass/Fail");
+      if (!hasApleysRight) missing.push("Apley's Scratch Right Pass/Fail");
+    }
+  
+    // Other optional fields
+    if (data.height?.value || data.weight?.value) {
+      if (!data.height?.value) missing.push('Height');
+      if (!data.weight?.value) missing.push('Weight');
+    }
+  
+    // Performance measurements - only check if any are filled
+    const hasPerformanceMeasurements = 
+      data.performanceMeasurements?.verticalJump?.value ||
+      data.performanceMeasurements?.broadJump?.value ||
+      data.performanceMeasurements?.tenYardSprint?.value;
+  
+    if (hasPerformanceMeasurements) {
+      if (!data.performanceMeasurements?.verticalJump?.value) missing.push('Vertical Jump');
+      if (!data.performanceMeasurements?.broadJump?.value) missing.push('Broad Jump');
+      if (!data.performanceMeasurements?.tenYardSprint?.value) missing.push('10-Yard Sprint');
+    }
+  
+    return missing;
+  };
+
+  const submitAssessment = async (data) => {
+    try {
+      const url = id 
+        ? `http://localhost:5000/api/assessments/${id}`
+        : 'http://localhost:5000/api/assessments';
+        
+      const response = await fetch(url, {
+        method: id ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit assessment');
+      }
+      navigate('/');
+    } catch (error) {
+      console.error('Error submitting assessment:', error);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    const missing = checkMissingFields(data);
+    if (missing.length > 0) {
+      setMissingFields(missing);
+      setSubmissionData(data);
+      setShowMissingFields(true);
+      return;
+    }
+    await submitAssessment(data);
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="container max-w-[1200px] mx-auto">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="lg:col-span-4">
+                <Label>Full Name *</Label>
+                <Input {...register("name", { required: "Name is required" })} />
+                {errors.name && (
+                  <span className="text-red-500 text-sm">{errors.name.message}</span>
+                )}
+              </div>
+              <div>
+                <Label>Assessment Date *</Label>
+                <Input type="date" {...register("assessmentDate", { required: "Assessment date is required" })} />
+                {errors.assessmentDate && (
+                  <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
+                )}
+              </div>
+              <div>
+  <Label>Date of Birth</Label>
+  <Input type="date" {...register("dateOfBirth")} />
+</div>
+<div>
+  <Label>Age</Label>
+  <Input type="number" {...register("age")} />
+</div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <Label>Height (inches)</Label>
+                  <Input type="number" step="0.1" {...register("height.value")} />
+                </div>
+                <div className="flex-1">
+                  <Label>Weight (lbs)</Label>
+                  <Input type="number" step="0.1" {...register("weight.value")} />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Movement Screen Table */}
+        <MovementScreenTable register={register} />
+
+        {/* Performance & Comments */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<Card>
+  <CardHeader>
+    <CardTitle>Performance Measurements</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="overflow-x-auto">
+      <table className="w-full border-collapse">
+        <thead>
+          <tr>
+            <th className="border p-2">Measurement</th>
+            <th className="border p-2">Attempt 1</th>
+            <th className="border p-2">Attempt 2</th>
+            <th className="border p-2">Attempt 3</th>
+            <th className="border p-2">Best</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="border p-2">Vertical Jump (inches)</td>
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.1"
+                {...register('performanceMeasurements.verticalJump.attempt1')}
+              />
+            </td>
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.1"
+                {...register('performanceMeasurements.verticalJump.attempt2')}
+              />  
+            </td>
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.1"
+                {...register('performanceMeasurements.verticalJump.attempt3')}
+              />
+            </td>
+            <td className="border p-2 font-bold">
+              {Math.max(
+                Number(formState.performanceMeasurements?.verticalJump?.attempt1 || 0),
+                Number(formState.performanceMeasurements?.verticalJump?.attempt2 || 0),  
+                Number(formState.performanceMeasurements?.verticalJump?.attempt3 || 0)
+              ).toFixed(1)}
+            </td>
+          </tr>
+          <tr>
+            <td className="border p-2">Broad Jump (inches)</td>
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.1"  
+                {...register('performanceMeasurements.broadJump.attempt1')}
+              />
+            </td>
+            <td className="border p-2">
+              <Input 
+                type="number"
+                step="0.1"
+                {...register('performanceMeasurements.broadJump.attempt2')} 
+              />
+            </td>
+            <td className="border p-2">
+              <Input
+                type="number" 
+                step="0.1"
+                {...register('performanceMeasurements.broadJump.attempt3')}
+              />
+            </td>
+            <td className="border p-2 font-bold">
+              {Math.max(
+                Number(formState.performanceMeasurements?.broadJump?.attempt1 || 0),
+                Number(formState.performanceMeasurements?.broadJump?.attempt2 || 0),
+                Number(formState.performanceMeasurements?.broadJump?.attempt3 || 0)  
+              ).toFixed(1)}
+            </td>
+          </tr>
+          <tr>
+            <td className="border p-2">10-Yard Sprint (seconds)</td>  
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.01" 
+                {...register('performanceMeasurements.tenYardSprint.attempt1')}
+              />
+            </td>
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.01"
+                {...register('performanceMeasurements.tenYardSprint.attempt2')} 
+              />
+            </td>
+            <td className="border p-2">
+              <Input
+                type="number"
+                step="0.01"
+                {...register('performanceMeasurements.tenYardSprint.attempt3')}
+              /> 
+            </td>
+            <td className="border p-2 font-bold">
+              {Math.min(
+                Number(formState.performanceMeasurements?.tenYardSprint?.attempt1 || Infinity), 
+                Number(formState.performanceMeasurements?.tenYardSprint?.attempt2 || Infinity),
+                Number(formState.performanceMeasurements?.tenYardSprint?.attempt3 || Infinity)
+              ).toFixed(2)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </CardContent>
+</Card>
+
+{/* General Comments */}
+<Card>
+  <CardHeader>  
+    <CardTitle>General Comments</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <Textarea 
+      {...register("generalComments")}
+      className="min-h-[200px]"
+      placeholder="Enter any additional observations or notes..." 
+    />
+  </CardContent>  
+</Card>
+
+          <div className="lg:col-span-2">
+            <Button type="submit" className="w-full">
+              {id ? 'Update' : 'Submit'} Assessment
+            </Button>
+          </div>
+        </div>
+      </form>
+
+      <AlertDialog open={showMissingFields} onOpenChange={setShowMissingFields}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Missing Optional Information</AlertDialogTitle>
+            <AlertDialogDescription>
+              The following optional fields are not filled out:
+              <ul className="list-disc pl-6 mt-2 space-y-1">
+                {missingFields.map((field, index) => (
+                  <li key={index}>{field}</li>
+                ))}
+              </ul>
+              Would you like to go back and fill them in or continue anyway?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowMissingFields(false)}>
+              Go Back
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowMissingFields(false);
+                if (submissionData) {
+                  submitAssessment(submissionData);
+                }
+              }}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              Continue Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default AthleteAssessmentForm;
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteDetail.jsx
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\index.css
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+// Content from: C:\MyPrograms\athleteDB\client\src\components\Dashboard.js
+
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import {
+  LineChart,
+  Line,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend
+} from 'recharts';
+
+const Dashboard = () => {
+  const [assessments, setAssessments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/assessments')
+      .then(res => res.json())
+      .then(data => {
+        setAssessments(data.data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching assessments:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  // Calculate summary statistics
+  const calculateStats = () => {
+    if (!assessments.length) return null;
+
+    return {
+      totalAthletes: new Set(assessments.map(a => a.name)).size,
+      totalAssessments: assessments.length,
+      avgAssessmentsPerAthlete: (assessments.length / new Set(assessments.map(a => a.name)).size).toFixed(1)
+    };
+  };
+
+  // Prepare performance data for line chart
+  const preparePerformanceData = () => {
+    const athleteData = {};
+    
+    assessments.forEach(assessment => {
+      if (!athleteData[assessment.name]) {
+        athleteData[assessment.name] = [];
+      }
+      
+      athleteData[assessment.name].push({
+        date: new Date(assessment.assessmentDate).toLocaleDateString(),
+        verticalJump: assessment.performanceMeasurements?.verticalJump?.value || 0,
+        broadJump: assessment.performanceMeasurements?.broadJump?.value || 0,
+        sprint: assessment.performanceMeasurements?.tenYardSprint?.value || 0
+      });
+    });
+
+    return athleteData;
+  };
+
+  // Prepare movement screen data for radar chart
+  const prepareMovementData = (assessment) => {
+    if (!assessment?.movementScreen) return [];
+
+    return [
+      { movement: 'Overhead Squat', score: assessment.movementScreen.overheadsquat?.score || 0 },
+      { movement: 'Hurdle Step', score: assessment.movementScreen.hurdlestep?.score || 0 },
+      { movement: 'Inline Lunge', score: assessment.movementScreen.inlinelunge?.score || 0 },
+      { movement: "Apley's Scratch", score: assessment.movementScreen.apleysScratch?.score || 0 }
+    ];
+  };
+
+  const stats = calculateStats();
+  const performanceData = preparePerformanceData();
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold">Dashboard</h1>
+
+      {/* Summary Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Total Athletes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalAthletes}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.totalAssessments}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Avg Assessments per Athlete</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats?.avgAssessmentsPerAthlete}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Vertical Jump Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={Object.values(performanceData)[0]}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="verticalJump" 
+                  stroke="#2563eb" 
+                  name="Vertical Jump (inches)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Latest Movement Screen</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={prepareMovementData(assessments[assessments.length - 1])}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="movement" />
+                <Radar
+                  name="Movement Score"
+                  dataKey="score"
+                  fill="#2563eb"
+                  fillOpacity={0.6}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sprint Time Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={Object.values(performanceData)[0]}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="sprint" 
+                  stroke="#dc2626" 
+                  name="10-Yard Sprint (seconds)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Broad Jump Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={Object.values(performanceData)[0]}>
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="broadJump" 
+                  stroke="#16a34a" 
+                  name="Broad Jump (inches)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\Layout.jsx
+
+// src/components/Layout.jsx
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from "../lib/utils";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Menu,
+  X
+} from 'lucide-react';
+import { Button } from './ui/button';
+
+const Sidebar = ({ className, isMobile, onNavClick }) => {
+  const location = useLocation();
+  
+  const navigation = [
+    {
+      name: 'Dashboard',
+      href: '/',
+      icon: LayoutDashboard,
+      exact: true
+    },
+    {
+      name: 'Assessments',
+      href: '/assessments',
+      icon: ClipboardList
+    }
+  ];
+
+  return (
+    <div className={cn("pb-12 min-h-screen", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-3 py-2">
+          <h2 className="mb-6 px-4 text-lg font-semibold">AthleteDB</h2>
+          <div className="space-y-1">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                onClick={isMobile ? onNavClick : undefined}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  (item.exact ? location.pathname === item.href : location.pathname.startsWith(item.href))
+                    ? "bg-gray-100 text-gray-900"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Layout = ({ children }) => {
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Menu Button */}
+      <div className="md:hidden fixed top-4 left-4 z-40">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowMobileMenu(!showMobileMenu)}
+        >
+          {showMobileMenu ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
+        </Button>
+      </div>
+
+      {/* Mobile Sidebar */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-30 bg-white md:hidden">
+          <Sidebar 
+            isMobile={true} 
+            onNavClick={() => setShowMobileMenu(false)} 
+          />
+        </div>
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 md:ml-64">
+        <main className="p-8">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\Navbar.js
+
+// client/src/components/Navbar.jsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const Navbar = () => {
+  return (
+    <nav className="bg-white shadow-lg">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center">
+            <Link to="/" className="text-xl font-bold text-gray-800">
+              AthleteDB
+            </Link>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/add" 
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
+            >
+              Add Assessment
+            </Link>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\alert-dialog.jsx
+
+// src/components/ui/alert-dialog.jsx
+import * as React from "react"
+import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
+import { cn } from "../../lib/utils"
+
+const AlertDialog = AlertDialogPrimitive.Root
+const AlertDialogTrigger = AlertDialogPrimitive.Trigger
+
+const AlertDialogPortal = AlertDialogPrimitive.Portal
+
+const AlertDialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
+  <AlertDialogPrimitive.Overlay
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+    ref={ref}
+  />
+))
+
+const AlertDialogContent = React.forwardRef(({ className, ...props }, ref) => (
+  <AlertDialogPortal>
+    <AlertDialogOverlay />
+    <AlertDialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        className
+      )}
+      {...props}
+    />
+  </AlertDialogPortal>
+))
+
+const AlertDialogHeader = ({ className, ...props }) => (
+  <div className={cn("flex flex-col space-y-2 text-center sm:text-left", className)} {...props} />
+)
+
+const AlertDialogFooter = ({ className, ...props }) => (
+  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
+)
+
+const AlertDialogTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <AlertDialogPrimitive.Title ref={ref} className={cn("text-lg font-semibold", className)} {...props} />
+))
+
+const AlertDialogDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <AlertDialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+
+const AlertDialogAction = React.forwardRef(({ className, ...props }, ref) => (
+  <AlertDialogPrimitive.Action
+    ref={ref}
+    className={cn("inline-flex h-10 items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground ring-offset-background transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50", className)}
+    {...props}
+  />
+))
+
+const AlertDialogCancel = React.forwardRef(({ className, ...props }, ref) => (
+  <AlertDialogPrimitive.Cancel
+    ref={ref}
+    className={cn("mt-2 inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-semibold ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 sm:mt-0", className)}
+    {...props}
+  />
+))
+
+export {
+  AlertDialog,
+  AlertDialogPortal,
+  AlertDialogOverlay,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\button.jsx
+
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+const Button = React.forwardRef(({ className, ...props }, ref) => {
+  return (
+    <button
+      className={cn(
+        "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2",
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+
+export { Button }
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\card.jsx
+
+// src/components/ui/card.jsx
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+const Card = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("rounded-lg border bg-card text-card-foreground shadow-sm", className)}
+    {...props}
+  />
+))
+
+const CardHeader = React.forwardRef(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+
+const CardContent = React.forwardRef(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+
+const CardTitle = React.forwardRef(({ className, children, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn("text-2xl font-semibold leading-none tracking-tight", className)}
+    {...props}
+  >
+    {children}
+  </h3>
+))
+
+export { Card, CardHeader, CardContent, CardTitle }
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\input.jsx
+
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+const Input = React.forwardRef(({ className, type, ...props }, ref) => {
+  return (
+    <input
+      type={type}
+      className={cn(
+        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+
+export { Input }
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\label.jsx
+
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cn } from "../../lib/utils"
+
+const Label = React.forwardRef(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(
+      "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+      className
+    )}
+    {...props}
+  />
+))
+
+export { Label }
+
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\textarea.jsx
+
+import * as React from "react"
+import { cn } from "../../lib/utils"
+
+const Textarea = React.forwardRef(({ className, ...props }, ref) => {
+  return (
+    <textarea
+      className={cn(
+        "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+
+export { Textarea }
+
+// Content from: C:\MyPrograms\athleteDB\client\src\hooks\useAssessments.js
+
+
+// src/hooks/useAssessments.js
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { athleteAssessmentApi } from '../services/api';
+
+const QUERY_KEYS = {
+  assessments: 'assessments',
+  assessment: 'assessment',
+};
+
+export function useAssessments(params) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.assessments, params],
+    queryFn: () => athleteAssessmentApi.getAssessments(params),
+    keepPreviousData: true,
+  });
 }
 
+export function useAssessment(id) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.assessment, id],
+    queryFn: () => athleteAssessmentApi.getAssessment(id),
+    enabled: !!id,
+  });
+}
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\index.js
+export function useCreateAssessment() {
+  const queryClient = useQueryClient();
 
+  return useMutation({
+    mutationFn: (data) => athleteAssessmentApi.createAssessment(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(QUERY_KEYS.assessments);
+    },
+  });
+}
+
+export function useUpdateAssessment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => athleteAssessmentApi.updateAssessment(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries([QUERY_KEYS.assessment, variables.id]);
+      queryClient.invalidateQueries(QUERY_KEYS.assessments);
+    },
+  });
+}
+
+export function useDeleteAssessment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => athleteAssessmentApi.deleteAssessment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(QUERY_KEYS.assessments);
+    },
+  });
+}
+
+// Content from: C:\MyPrograms\athleteDB\client\src\index.css
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+ 
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+ 
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+ 
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+// Content from: C:\MyPrograms\athleteDB\client\src\index.js
+
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from './lib/queryClient';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </React.StrictMode>
 );
 
@@ -298,7 +1890,32 @@ root.render(
 reportWebVitals();
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\reportWebVitals.js
+// Content from: C:\MyPrograms\athleteDB\client\src\lib\queryClient.js
+
+// src/lib/queryClient.js
+import { QueryClient } from '@tanstack/react-query';
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
+
+// Content from: C:\MyPrograms\athleteDB\client\src\lib\utils.js
+
+// src/lib/utils.js
+import { clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+ 
+export function cn(...inputs) {
+  return twMerge(clsx(inputs))
+}
+
+// Content from: C:\MyPrograms\athleteDB\client\src\reportWebVitals.js
 
 const reportWebVitals = onPerfEntry => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
@@ -315,7 +1932,69 @@ const reportWebVitals = onPerfEntry => {
 export default reportWebVitals;
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\setupTests.js
+// Content from: C:\MyPrograms\athleteDB\client\src\services\api.js
+
+// services/api.js
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+const api = axios.create({
+  baseURL: API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Add auth token to requests
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export const athleteAssessmentApi = {
+  // Get all assessments with pagination and filters
+  getAssessments: async (params) => {
+    const response = await api.get('/assessments', { params });
+    return response.data;
+  },
+
+  // Get single assessment
+  getAssessment: async (id) => {
+    const response = await api.get(`/assessments/${id}`);
+    return response.data;
+  },
+
+  // Create new assessment
+  createAssessment: async (data) => {
+    const response = await api.post('/assessments', data);
+    return response.data;
+  },
+
+  // Update assessment
+  updateAssessment: async (id, data) => {
+    const response = await api.put(`/assessments/${id}`, data);
+    return response.data;
+  },
+
+  // Delete assessment
+  deleteAssessment: async (id) => {
+    const response = await api.delete(`/assessments/${id}`);
+    return response.data;
+  }
+};
+
+export default api;
+
+// Content from: C:\MyPrograms\athleteDB\client\src\setupTests.js
 
 // jest-dom adds custom jest matchers for asserting on DOM nodes.
 // allows you to do things like:
@@ -324,7 +2003,69 @@ export default reportWebVitals;
 import '@testing-library/jest-dom';
 
 
-// Content from: C:\MyPrograms\AthleteDB\combineAllFiles.js
+// Content from: C:\MyPrograms\athleteDB\client\tailwind.config.js
+
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+    },
+  },
+  plugins: [],
+}
+
+// Content from: C:\MyPrograms\athleteDB\combineAllFiles.js
 
 const fs = require('fs');
 const path = require('path');
@@ -429,7 +2170,7 @@ concatenateFiles(allFiles, combinedFile);
 console.log(`Directory structure has been written to ${structureFile}`);
 
 
-// Content from: C:\MyPrograms\AthleteDB\liststructure.js
+// Content from: C:\MyPrograms\athleteDB\liststructure.js
 
 const fs = require('fs');
 const path = require('path');
@@ -485,7 +2226,7 @@ listDirectory('.');
 console.log(`Directory structure has been written to ${outputFile}`);
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\config\db.js
+// Content from: C:\MyPrograms\athleteDB\server\config\db.js
 
 // server/config/db.js
 const mongoose = require('mongoose');
@@ -506,107 +2247,369 @@ const connectDB = async () => {
 module.exports = connectDB;
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\models\Athlete.js
+// Content from: C:\MyPrograms\athleteDB\server\controllers\athleteAssessmentController.js
 
-// server/models/Athlete.js
-const mongoose = require('mongoose');
+// server/controllers/athleteAssessmentController.js
+const AthleteAssessment = require('../models/AthleteAssessment');
+const asyncHandler = require('express-async-handler');
 
-const AthleteSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    height: { type: String },
-    weight: { type: String },
-    age: { type: Number },
-    dob: { type: Date },
-    assessments: [{
-        date: { type: Date, default: Date.now },
-        movementScreen: {
-            overheadSquat: { type: String },
-            hurdleStep: { type: String },
-            inlineLunge: { type: String },
-            apleysScratch: { type: String },
-            comments: { type: String },
-        },
-        performanceMeasurements: {
-            verticalJump: { type: Number },
-            broadJump: { type: Number },
-            sprint10yd: { type: Number },
-        },
-    }],
+// @desc    Get all athlete assessments
+// @route   GET /api/assessments
+exports.getAssessments = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skipIndex = (page - 1) * limit;
+  
+  const query = {};
+  
+  // Add search functionality
+  if (req.query.search) {
+    query.name = { $regex: req.query.search, $options: 'i' };
+  }
+  
+  // Add date range filter
+  if (req.query.startDate && req.query.endDate) {
+    query.assessmentDate = {
+      $gte: new Date(req.query.startDate),
+      $lte: new Date(req.query.endDate)
+    };
+  }
+
+  const total = await AthleteAssessment.countDocuments(query);
+  const assessments = await AthleteAssessment.find(query)
+    .sort({ assessmentDate: -1 })
+    .limit(limit)
+    .skip(skipIndex);
+
+  res.status(200).json({
+    success: true,
+    count: assessments.length,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+    data: assessments
+  });
 });
 
-module.exports = mongoose.model('Athlete', AthleteSchema);
+// @desc    Get single athlete assessment
+// @route   GET /api/assessments/:id
+exports.getAssessment = asyncHandler(async (req, res) => {
+  const assessment = await AthleteAssessment.findById(req.params.id);
+
+  if (!assessment) {
+    res.status(404);
+    throw new Error('Assessment not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    data: assessment
+  });
+});
+
+// @desc    Create athlete assessment
+// @route   POST /api/assessments
+exports.createAssessment = asyncHandler(async (req, res) => {
+  const assessment = await AthleteAssessment.create(req.body);
+
+  res.status(201).json({
+    success: true,
+    data: assessment
+  });
+});
+
+// @desc    Update athlete assessment
+// @route   PUT /api/assessments/:id
+exports.updateAssessment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First check if the assessment exists
+    const assessment = await AthleteAssessment.findById(id);
+    if (!assessment) {
+      return res.status(404).json({
+        success: false,
+        error: 'Assessment not found'
+      });
+    }
+
+    // Prepare the update data
+    const updateData = {
+      name: req.body.name,
+      assessmentDate: req.body.assessmentDate,
+      dateOfBirth: req.body.dateOfBirth,
+      age: req.body.age,
+      height: req.body.height,
+      weight: req.body.weight,
+      
+      movementScreen: {
+        overheadsquat: {
+          scoreLeft: req.body.movementScreen?.overheadsquat?.scoreLeft,
+          scoreRight: req.body.movementScreen?.overheadsquat?.scoreRight,
+          comments: req.body.movementScreen?.overheadsquat?.comments
+        },
+        hurdlestep: {
+          scoreLeft: req.body.movementScreen?.hurdlestep?.scoreLeft,
+          scoreRight: req.body.movementScreen?.hurdlestep?.scoreRight,
+          comments: req.body.movementScreen?.hurdlestep?.comments
+        },
+        inlinelunge: {
+          scoreLeft: req.body.movementScreen?.inlinelunge?.scoreLeft,
+          scoreRight: req.body.movementScreen?.inlinelunge?.scoreRight,
+          comments: req.body.movementScreen?.inlinelunge?.comments
+        },
+        apleysScratch: {
+          scoreLeft: req.body.movementScreen?.apleysScratch?.scoreLeft || '',
+          scoreRight: req.body.movementScreen?.apleysScratch?.scoreRight || '',
+          comments: req.body.movementScreen?.apleysScratch?.comments || ''
+        }
+      },
+      
+      performanceMeasurements: req.body.performanceMeasurements || {},
+      generalComments: req.body.generalComments
+    };
+
+    // Update the assessment with the new data
+    const updatedAssessment = await AthleteAssessment.findByIdAndUpdate(
+      id,
+      updateData,
+      { 
+        new: true,
+        runValidators: true 
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: updatedAssessment
+    });
+
+  } catch (error) {
+    console.error('Update error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+
+// @desc    Delete athlete assessment
+// @route   DELETE /api/assessments/:id
+exports.deleteAssessment = asyncHandler(async (req, res) => {
+  const assessment = await AthleteAssessment.findById(req.params.id);
+
+  if (!assessment) {
+    res.status(404);
+    throw new Error('Assessment not found');
+  }
+
+  await assessment.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
+// Content from: C:\MyPrograms\athleteDB\server\models\Athlete.js
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\package.json
+
+// Content from: C:\MyPrograms\athleteDB\server\models\AthleteAssessment.js
+
+// models/AthleteAssessment.js
+const mongoose = require('mongoose');
+
+// Regular movement screen schema (1-3 scale)
+const movementScreenSchema = new mongoose.Schema({
+  scoreLeft: {
+    type: Number,
+    min: 1,
+    max: 3
+  },
+  scoreRight: {
+    type: Number,
+    min: 1,
+    max: 3
+  },
+  comments: {
+    type: String,
+    trim: true
+  }
+});
+
+// Pass/Fail schema specifically for Apley's test
+const apleyScreenSchema = new mongoose.Schema({
+  scoreLeft: {
+    type: String,
+    enum: ['pass', 'fail', ''],
+    default: ''
+  },
+  scoreRight: {
+    type: String,
+    enum: ['pass', 'fail', ''],
+    default: ''
+  },
+  comments: {
+    type: String,
+    trim: true
+  }
+});
+
+const athleteAssessmentSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
+  },
+  assessmentDate: {
+    type: Date,
+    required: [true, 'Assessment date is required'],
+    default: Date.now
+  },
+  height: {
+    value: Number,
+    unit: {
+      type: String,
+      enum: ['in', 'cm'],
+      default: 'in'
+    }
+  },
+  weight: {
+    value: Number,
+    unit: {
+      type: String,
+      enum: ['lbs', 'kg'],
+      default: 'lbs'
+    }
+  },
+  movementScreen: {
+    overheadsquat: movementScreenSchema,
+    hurdlestep: movementScreenSchema,
+    inlinelunge: movementScreenSchema,
+    apleysScratch: apleyScreenSchema  // Using the specific schema for Apley's
+  },
+  performanceMeasurements: {
+    verticalJump: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['in', 'cm'],
+        default: 'in'
+      }
+    },
+    broadJump: {
+      value: Number,
+      unit: {
+        type: String,
+        enum: ['in', 'cm'],
+        default: 'in'
+      }
+    },
+    tenYardSprint: {
+      value: Number
+    }
+  },
+  generalComments: {
+    type: String,
+    trim: true
+  }
+}, {
+  timestamps: true
+});
+
+module.exports = mongoose.model('AthleteAssessment', athleteAssessmentSchema);
+
+// Content from: C:\MyPrograms\athleteDB\server\package.json
 
 {
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
-    "mongoose": "^8.8.1"
-  }
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.8.1",
+    "morgan": "^1.10.0"
+  },
+  "description": ""
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\routes\athleteRoutes.js
+// Content from: C:\MyPrograms\athleteDB\server\routes\athleteAssessment.js
 
-// server/routes/athleteRoutes.js
+// server/routes/athleteAssessment.js
 const express = require('express');
-const Athlete = require('../models/Athlete');
 const router = express.Router();
+const {
+  getAssessments,
+  getAssessment,
+  createAssessment,
+  updateAssessment,
+  deleteAssessment
+} = require('../controllers/athleteAssessmentController');
 
-// Create new athlete
-router.post('/athletes', async (req, res) => {
-    try {
-        const athlete = new Athlete(req.body);
-        await athlete.save();
-        res.status(201).json(athlete);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.route('/')
+  .get(getAssessments)
+  .post(createAssessment);
 
-// Get all athletes
-router.get('/athletes', async (req, res) => {
-    try {
-        const athletes = await Athlete.find();
-        res.json(athletes);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+router.route('/:id')
+  .get(getAssessment)
+  .put(updateAssessment)
+  .delete(deleteAssessment);
 
 module.exports = router;
 
-
-// Content from: C:\MyPrograms\AthleteDB\server\server.js
+// Content from: C:\MyPrograms\athleteDB\server\server.js
 
 // server/server.js
+require('dotenv').config();
 const express = require('express');
-const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const connectDB = require('./config/db');
-const athleteRoutes = require('./routes/athleteRoutes');
+const morgan = require('morgan');
 
-dotenv.config();
-connectDB();
+const athleteRoutes = require('./routes/athleteAssessment');
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-app.use('/api', athleteRoutes);
+// Middleware
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use('/api/assessments', athleteRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    success: false,
+    error: err.message || 'Server Error'
+  });
+});
+
+// Database connection
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB')
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
