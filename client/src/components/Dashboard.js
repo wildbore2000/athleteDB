@@ -1,112 +1,166 @@
-import React, { useState, useEffect } from 'react';
+// src/components/Dashboard.js
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { athleteApi, assessmentApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Link } from 'react-router-dom';
 import {
   LineChart,
   Line,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar
 } from 'recharts';
+import { formatDistanceToNow } from 'date-fns';
 
 const Dashboard = () => {
-  const [assessments, setAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Fetch athletes and recent assessments
+  const { data: athletesData } = useQuery({
+    queryKey: ['athletes'],
+    queryFn: () => athleteApi.getAthletes({ limit: 100 })
+  });
 
-  useEffect(() => {
-    fetch('http://localhost:5000/api/assessments')
-      .then(res => res.json())
-      .then(data => {
-        setAssessments(data.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching assessments:', err);
-        setLoading(false);
-      });
-  }, []);
+  const { data: assessmentsData } = useQuery({
+    queryKey: ['assessments'],
+    queryFn: () => assessmentApi.getAssessments({ limit: 50 })
+  });
 
-  // Calculate summary statistics
   const calculateStats = () => {
-    if (!assessments.length) return null;
+    if (!athletesData?.data || !assessmentsData?.data) return null;
+
+    const totalAthletes = athletesData.data.length;
+    const totalAssessments = assessmentsData.data.length;
+    const assessmentsThisMonth = assessmentsData.data.filter(a => {
+      const assessmentDate = new Date(a.assessmentDate);
+      const today = new Date();
+      return assessmentDate.getMonth() === today.getMonth() &&
+             assessmentDate.getFullYear() === today.getFullYear();
+    }).length;
+
+    const avgAssessmentsPerAthlete = totalAthletes > 0
+      ? (totalAssessments / totalAthletes).toFixed(1)
+      : 0;
 
     return {
-      totalAthletes: new Set(assessments.map(a => a.name)).size,
-      totalAssessments: assessments.length,
-      avgAssessmentsPerAthlete: (assessments.length / new Set(assessments.map(a => a.name)).size).toFixed(1)
+      totalAthletes,
+      totalAssessments,
+      assessmentsThisMonth,
+      avgAssessmentsPerAthlete
     };
   };
 
-  // Prepare performance data for line chart
   const preparePerformanceData = () => {
+    if (!assessmentsData?.data) return [];
+
+    // Group assessments by athlete
     const athleteData = {};
-    
-    assessments.forEach(assessment => {
-      if (!athleteData[assessment.name]) {
-        athleteData[assessment.name] = [];
+    assessmentsData.data.forEach(assessment => {
+      if (!athleteData[assessment.athlete?._id]) {
+        athleteData[assessment.athlete?._id] = {
+          name: assessment.athlete?.name,
+          assessments: []
+        };
       }
       
-      athleteData[assessment.name].push({
+      athleteData[assessment.athlete?._id].assessments.push({
         date: new Date(assessment.assessmentDate).toLocaleDateString(),
-        verticalJump: assessment.performanceMeasurements?.verticalJump?.value || 0,
-        broadJump: assessment.performanceMeasurements?.broadJump?.value || 0,
-        sprint: assessment.performanceMeasurements?.tenYardSprint?.value || 0
+        verticalJump: assessment.performance?.verticalJump?.value || 0,
+        broadJump: assessment.performance?.broadJump?.value || 0,
+        sprint: assessment.performance?.tenYardSprint?.value || 0
       });
     });
 
-    return athleteData;
+    return Object.values(athleteData);
   };
 
-  // Prepare movement screen data for radar chart
-  const prepareMovementData = (assessment) => {
-    if (!assessment?.movementScreen) return [];
-
-    return [
-      { movement: 'Overhead Squat', score: assessment.movementScreen.overheadsquat?.score || 0 },
-      { movement: 'Hurdle Step', score: assessment.movementScreen.hurdlestep?.score || 0 },
-      { movement: 'Inline Lunge', score: assessment.movementScreen.inlinelunge?.score || 0 },
-      { movement: "Apley's Scratch", score: assessment.movementScreen.apleysScratch?.score || 0 }
-    ];
+  const prepareRecentActivity = () => {
+    if (!assessmentsData?.data) return [];
+    
+    return assessmentsData.data
+      .slice(0, 5)
+      .map(assessment => ({
+        athleteName: assessment.athlete?.name,
+        date: assessment.assessmentDate,
+        id: assessment._id,
+        athleteId: assessment.athlete?._id
+      }));
   };
 
   const stats = calculateStats();
   const performanceData = preparePerformanceData();
-
-  if (loading) return <div>Loading...</div>;
+  const recentActivity = prepareRecentActivity();
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="space-x-2">
+          <Link to="/athletes/new">
+            <Button variant="outline">Add Athlete</Button>
+          </Link>
+          <Link to="/assessments/add">
+            <Button>New Assessment</Button>
+          </Link>
+        </div>
+      </div>
 
       {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Athletes</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Athletes
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAthletes}</div>
+            <div className="text-2xl font-bold">
+              {stats?.totalAthletes || 0}
+            </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Assessments
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAssessments}</div>
+            <div className="text-2xl font-bold">
+              {stats?.totalAssessments || 0}
+            </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Avg Assessments per Athlete</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Assessments This Month
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.avgAssessmentsPerAthlete}</div>
+            <div className="text-2xl font-bold">
+              {stats?.assessmentsThisMonth || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Avg Assessments per Athlete
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.avgAssessmentsPerAthlete || 0}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -119,7 +173,8 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={Object.values(performanceData)[0]}>
+              <LineChart data={performanceData?.[0]?.assessments || []}>
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
@@ -137,31 +192,12 @@ const Dashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Latest Movement Screen</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={prepareMovementData(assessments[assessments.length - 1])}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="movement" />
-                <Radar
-                  name="Movement Score"
-                  dataKey="score"
-                  fill="#2563eb"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>Sprint Time Progress</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={Object.values(performanceData)[0]}>
+              <LineChart data={performanceData?.[0]?.assessments || []}>
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="date" />
                 <YAxis />
                 <Tooltip />
@@ -176,29 +212,43 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Broad Jump Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={Object.values(performanceData)[0]}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="broadJump" 
-                  stroke="#16a34a" 
-                  name="Broad Jump (inches)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Assessments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentActivity.map((activity) => (
+              <div 
+                key={activity.id}
+                className="flex justify-between items-center border-b pb-2 last:border-0"
+              >
+                <div>
+                  <Link 
+                    to={`/athletes/${activity.athleteId}`}
+                    className="font-medium hover:text-blue-600"
+                  >
+                    {activity.athleteName}
+                  </Link>
+                  <p className="text-sm text-gray-500">
+                    {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
+                  </p>
+                </div>
+                <Link 
+                  to={`/athletes/${activity.athleteId}/assessments/${activity.id}`}
+                >
+                  <Button variant="outline" size="sm">
+                    View Assessment
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 
 
-// Content from: C:\MyPrograms\athleteDB\client\components.json
+// Content from: C:\MyPrograms\AthleteDB\client\components.json
 
 {
     "$schema": "https://ui.shadcn.com/schema.json",
@@ -18,7 +18,7 @@
     }
   }
 
-// Content from: C:\MyPrograms\athleteDB\client\package.json
+// Content from: C:\MyPrograms\AthleteDB\client\package.json
 
 {
   "name": "client",
@@ -26,7 +26,9 @@
   "private": true,
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-select": "^2.1.2",
     "@radix-ui/react-slot": "^1.0.2",
     "@tanstack/react-query": "^5.59.20",
     "@testing-library/jest-dom": "^5.17.0",
@@ -36,6 +38,7 @@
     "axios": "^1.7.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.263.1",
     "postcss": "^8.4.35",
     "react": "^18.3.1",
@@ -52,7 +55,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "dev": "react-scripts start"
   },
   "eslintConfig": {
     "extends": [
@@ -75,7 +79,7 @@
 }
 
 
-// Content from: C:\MyPrograms\athleteDB\client\postcss.config.js
+// Content from: C:\MyPrograms\AthleteDB\client\postcss.config.js
 
 module.exports = {
   plugins: {
@@ -85,7 +89,7 @@ module.exports = {
 }
 
 
-// Content from: C:\MyPrograms\athleteDB\client\public\index.html
+// Content from: C:\MyPrograms\AthleteDB\client\public\index.html
 
 <!DOCTYPE html>
 <html lang="en">
@@ -132,7 +136,7 @@ module.exports = {
 </html>
 
 
-// Content from: C:\MyPrograms\athleteDB\client\public\manifest.json
+// Content from: C:\MyPrograms\AthleteDB\client\public\manifest.json
 
 {
   "short_name": "React App",
@@ -161,59 +165,77 @@ module.exports = {
 }
 
 
-// Content from: C:\MyPrograms\athleteDB\client\src\App.css
-
-/* client/src/App.css */
-nav {
-  background-color: #282c34;
-  padding: 1rem;
-}
-
-nav ul {
-  list-style-type: none;
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin: 0;
-  padding: 0;
-}
-
-nav ul li {
-  display: inline;
-}
-
-nav ul li a {
-  color: #61dafb;
-  text-decoration: none;
-  font-size: 1.2rem;
-}
-
-nav ul li a:hover {
-  color: #21a1f1;
-}
-
-
-// Content from: C:\MyPrograms\athleteDB\client\src\App.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\App.js
 
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+
+// Pages and Components
 import Dashboard from './components/Dashboard';
+import { AthleteList } from './components/AthleteList';
+import { AthleteForm } from './components/AthleteForm';
+import { AthleteDetail } from './components/AthleteDetail';
 import AssessmentList from './components/AssessmentList';
-import AthleteAssessmentForm from './components/AthleteAssessmentForm';
+import AssessmentForm from './components/AssessmentForm';
 import AssessmentDetail from './components/AssessmentDetail';
+import { Analytics } from './components/Analytics';
+import { ComparisonChart } from './components/ComparisonChart';
+import { TrendsChart } from './components/TrendsChart';
+
+// Analytics Layout Component
+const AnalyticsLayout = ({ children }) => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-bold">Analytics</h1>
+    </div>
+    {children}
+  </div>
+);
 
 function App() {
   return (
     <Router>
       <Layout>
         <Routes>
+          {/* Dashboard */}
           <Route path="/" element={<Dashboard />} />
+
+          {/* Athletes Routes */}
+          <Route path="/athletes" element={<AthleteList />} />
+          <Route path="/athletes/new" element={<AthleteForm />} />
+          <Route path="/athletes/:id" element={<AthleteDetail />} />
+          <Route path="/athletes/:id/edit" element={<AthleteForm />} />
+
+          {/* Assessment Routes */}
           <Route path="/assessments" element={<AssessmentList />} />
-          <Route path="/assessments/add" element={<AthleteAssessmentForm />} />
-          <Route path="/assessments/edit/:id" element={<AthleteAssessmentForm />} />
+          <Route path="/assessments/new" element={<AssessmentForm />} />
           <Route path="/assessments/:id" element={<AssessmentDetail />} />
+          <Route path="/assessments/:id/edit" element={<AssessmentForm />} />
+          <Route path="/athletes/:athleteId/assessments" element={<AssessmentList />} />
+          <Route path="/athletes/:athleteId/assessments/new" element={<AssessmentForm />} />
+          <Route path="/athletes/:athleteId/assessments/:id" element={<AssessmentDetail />} />
+          <Route path="/athletes/:athleteId/assessments/:id/edit" element={<AssessmentForm />} />
+
+          {/* Analytics Routes */}
+          <Route path="/analytics" element={
+            <AnalyticsLayout>
+              <Analytics />
+            </AnalyticsLayout>
+          } />
+          <Route path="/analytics/comparison" element={
+            <AnalyticsLayout>
+              <ComparisonChart />
+            </AnalyticsLayout>
+          } />
+          <Route path="/analytics/trends" element={
+            <AnalyticsLayout>
+              <TrendsChart />
+            </AnalyticsLayout>
+          } />
+
+          {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Layout>
@@ -223,7 +245,7 @@ function App() {
 
 export default App;
 
-// Content from: C:\MyPrograms\athleteDB\client\src\App.test.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\App.test.js
 
 import { render, screen } from '@testing-library/react';
 import App from './App';
@@ -235,11 +257,64 @@ test('renders learn react link', () => {
 });
 
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentDetail.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\Analytics.jsx
+
+// src/components/Analytics.jsx
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ComparisonChart } from './ComparisonChart';
+import { TrendsChart } from './TrendsChart';
+
+export const Analytics = () => {
+  return (
+    <div className="space-y-6">
+      {/* Performance Trends */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Performance Trends</CardTitle>
+            <Link 
+              to="/analytics/trends" 
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              View Details →
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <TrendsChart metric="verticalJump" timeframe="6m" />
+        </CardContent>
+      </Card>
+
+      {/* Athlete Comparisons */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Athlete Comparisons</CardTitle>
+            <Link 
+              to="/analytics/comparison" 
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              View Details →
+            </Link>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <ComparisonChart limit={5} />
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentDetail.jsx
 
 // src/components/AssessmentDetail.jsx
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { assessmentApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import {
@@ -253,120 +328,550 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 
-const AssessmentDetail = () => {
-  const { id } = useParams();
+// Change to default export
+export default function AssessmentDetail() {
+  const { id, athleteId } = useParams();
   const navigate = useNavigate();
-  const [assessment, setAssessment] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  React.useEffect(() => {
-    fetch(`http://localhost:5000/api/assessments/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        setAssessment(data.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
-  }, [id]);
+  const { data: assessmentData, isLoading, error } = useQuery({
+    queryKey: ['assessment', id],
+    queryFn: () => assessmentApi.getAssessment(id)
+  });
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/assessments/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete assessment');
+      await assessmentApi.deleteAssessment(id);
+      if (athleteId) {
+        navigate(`/athletes/${athleteId}/assessments`);
+      } else {
+        navigate('/assessments');
       }
-
-      navigate('/');
     } catch (error) {
       console.error('Error deleting assessment:', error);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!assessment) return <div>Assessment not found</div>;
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+  if (!assessmentData?.data) return <div>Assessment not found</div>;
+
+  const assessment = assessmentData.data;
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Assessment Details</h1>
-        <div className="space-x-2">
-          <Button onClick={() => navigate(`/edit/${id}`)}>
-            Edit Assessment
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={() => setShowDeleteDialog(true)}
+      {/* Header with Navigation */}
+      <div className="mb-6 space-y-2">
+        {athleteId && (
+          <Link
+            to={`/athletes/${athleteId}`}
+            className="text-sm text-blue-600 hover:text-blue-800"
           >
-            Delete Assessment
-          </Button>
+            ← Back to Athlete Profile
+          </Link>
+        )}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Assessment Details</h1>
+          <div className="space-x-2">
+            <Button 
+              onClick={() => navigate(athleteId 
+                ? `/athletes/${athleteId}/assessments/${id}/edit`
+                : `/assessments/${id}/edit`
+              )}
+            >
+              Edit Assessment
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              Delete Assessment
+            </Button>
+          </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{assessment.name}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold">Basic Information</h3>
-              <p>Age: {assessment.age}</p>
-              <p>Height: {assessment.height?.value} inches</p>
-              <p>Weight: {assessment.weight?.value} lbs</p>
-              <p>Date of Birth: {new Date(assessment.dateOfBirth).toLocaleDateString()}</p>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold">Performance Measurements</h3>
-              <p>Vertical Jump: {assessment.performanceMeasurements?.verticalJump?.value} inches</p>
-              <p>Broad Jump: {assessment.performanceMeasurements?.broadJump?.value} inches</p>
-              <p>10-Yard Sprint: {assessment.performanceMeasurements?.tenYardSprint?.value}s</p>
-            </div>
-          </div>
+      {/* Basic Information */}
+      <div className="space-y-6">
+        {/* Athlete Info */}
+        {assessment.athlete && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Athlete Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p>Name: {assessment.athlete.name}</p>
+                <p>Age: {assessment.athlete.age || 'N/A'}</p>
+                <p>Height: {assessment.athlete.height?.value ? `${assessment.athlete.height.value}"` : 'N/A'}</p>
+                <p>Weight: {assessment.athlete.weight?.value ? `${assessment.athlete.weight.value} lbs` : 'N/A'}</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {assessment.generalComments && (
-            <div className="mt-6">
-              <h3 className="font-semibold">General Comments</h3>
+        {/* Assessment Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Assessment Information</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Date: {new Date(assessment.assessmentDate).toLocaleDateString()}</p>
+          </CardContent>
+        </Card>
+
+        {/* Movement Screen */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Movement Screen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {assessment.movementScreen && (
+                <>
+                  {/* Overhead Squat */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Overhead Squat</h3>
+                    <p>Left: {assessment.movementScreen.overheadSquat?.scoreLeft || 'N/A'}</p>
+                    <p>Right: {assessment.movementScreen.overheadSquat?.scoreRight || 'N/A'}</p>
+                    {assessment.movementScreen.overheadSquat?.comments && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Comments: {assessment.movementScreen.overheadSquat.comments}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Hurdle Step */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Hurdle Step</h3>
+                    <p>Left: {assessment.movementScreen.hurdleStep?.scoreLeft || 'N/A'}</p>
+                    <p>Right: {assessment.movementScreen.hurdleStep?.scoreRight || 'N/A'}</p>
+                    {assessment.movementScreen.hurdleStep?.comments && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Comments: {assessment.movementScreen.hurdleStep.comments}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Inline Lunge */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Inline Lunge</h3>
+                    <p>Left: {assessment.movementScreen.inlineLunge?.scoreLeft || 'N/A'}</p>
+                    <p>Right: {assessment.movementScreen.inlineLunge?.scoreRight || 'N/A'}</p>
+                    {assessment.movementScreen.inlineLunge?.comments && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Comments: {assessment.movementScreen.inlineLunge.comments}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Apley's Scratch */}
+                  <div>
+                    <h3 className="font-semibold mb-2">Apley's Scratch</h3>
+                    <p>Left: {assessment.movementScreen.apleyScratch?.scoreLeft || 'N/A'}</p>
+                    <p>Right: {assessment.movementScreen.apleyScratch?.scoreRight || 'N/A'}</p>
+                    {assessment.movementScreen.apleyScratch?.comments && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        Comments: {assessment.movementScreen.apleyScratch.comments}
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Performance Measurements */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Measurements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {assessment.performance && (
+                <>
+                  {/* Jumps */}
+                  <div>
+                    <h3 className="font-semibold mb-3">Jump Tests</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium">Vertical Jump</p>
+                        <p>Best: {assessment.performance.verticalJump?.value || 'N/A'}"</p>
+                        <p className="text-sm text-gray-600">
+                          Attempts: {assessment.performance.verticalJump?.attempts?.join('", ')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium">Broad Jump</p>
+                        <p>Best: {assessment.performance.broadJump?.value || 'N/A'}"</p>
+                        <p className="text-sm text-gray-600">
+                          Attempts: {assessment.performance.broadJump?.attempts?.join('", ')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sprint */}
+                  <div>
+                    <h3 className="font-semibold mb-3">Sprint Test</h3>
+                    <p>Best: {assessment.performance.tenYardSprint?.value || 'N/A'}s</p>
+                    <p className="text-sm text-gray-600">
+                      Attempts: {assessment.performance.tenYardSprint?.attempts?.join('s, ')}
+                    </p>
+                  </div>
+
+                  {/* Medicine Ball Tests */}
+                  <div>
+                    <h3 className="font-semibold mb-3">Medicine Ball Tests</h3>
+                    <div className="space-y-2">
+                      <div>
+                        <p className="font-medium">OH MB Throw</p>
+                        <p>Best: {assessment.performance.ohmbThrow?.value || 'N/A'}"</p>
+                        <p className="text-sm text-gray-600">
+                          Attempts: {assessment.performance.ohmbThrow?.attempts?.join('", ')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium">MB Shotput</p>
+                        <p>Best: {assessment.performance.mbShotput?.value || 'N/A'}"</p>
+                        <p className="text-sm text-gray-600">
+                          Attempts: {assessment.performance.mbShotput?.attempts?.join('", ')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="font-medium">MB Lead Arm</p>
+                        <p>Best: {assessment.performance.mbLeadArm?.value || 'N/A'}"</p>
+                        <p className="text-sm text-gray-600">
+                          Attempts: {assessment.performance.mbLeadArm?.attempts?.join('", ')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* General Comments */}
+        {assessment.generalComments && (
+          <Card>
+            <CardHeader>
+              <CardTitle>General Comments</CardTitle>
+            </CardHeader>
+            <CardContent>
               <p>{assessment.generalComments}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              assessment record for {assessment.name}.
+              This action cannot be undone. This will permanently delete this assessment record.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction 
+              className="bg-red-500 hover:bg-red-600" 
+              onClick={handleDelete}
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
   );
-};
+}
 
-export default AssessmentDetail;
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentForm.jsx
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentList.jsx
+// src/components/AssessmentForm.jsx
+import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { assessmentApi, athleteApi } from '../services/api';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
+import { Label } from './ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import PerformanceMeasurements from './PerformanceMeasurements';
+import MovementScreen from './MovementScreen';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "./ui/alert-dialog";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+// Change to default export
+export default function AssessmentForm() {
+  const { id, athleteId } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [showMissingFields, setShowMissingFields] = useState(false);
+  const [missingFields, setMissingFields] = useState([]);
+  const [submissionData, setSubmissionData] = useState(null);
+  
+  // Fetch assessment data if editing
+  const { data: assessmentData, isLoading: isLoadingAssessment } = useQuery({
+    queryKey: ['assessment', id],
+    queryFn: () => assessmentApi.getAssessment(id),
+    enabled: !!id
+  });
+
+  // Fetch athletes for dropdown if not in athlete-specific context
+  const { data: athletesData, isLoading: isLoadingAthletes } = useQuery({
+    queryKey: ['athletes'],
+    queryFn: () => athleteApi.getAthletes(),
+    enabled: !athleteId // Only fetch if not in athlete-specific context
+  });
+
+  // Form setup
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm();
+
+  // Mutations
+  const createMutation = useMutation({
+    mutationFn: (data) => assessmentApi.createAssessment(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries('assessments');
+      if (athleteId) {
+        navigate(`/athletes/${athleteId}/assessments`);
+      } else {
+        navigate('/assessments');
+      }
+    }
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => assessmentApi.updateAssessment(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries('assessments');
+      if (athleteId) {
+        navigate(`/athletes/${athleteId}/assessments`);
+      } else {
+        navigate('/assessments');
+      }
+    }
+  });
+
+  // Initialize form when data is loaded
+  useEffect(() => {
+    if (assessmentData?.data) {
+      const formData = {
+        ...assessmentData.data,
+        assessmentDate: new Date(assessmentData.data.assessmentDate).toISOString().split('T')[0]
+      };
+      reset(formData);
+    }
+  }, [assessmentData, reset]);
+
+  const checkMissingFields = (data) => {
+    const missing = [];
+
+    if (!data.assessmentDate) missing.push('Assessment Date');
+    if (!athleteId && !data.athlete) missing.push('Athlete');
+
+    // Check if any performance measurement is partially filled
+    const performanceFields = [
+      'verticalJump',
+      'broadJump',
+      'tenYardSprint',
+      'ohmbThrow',
+      'mbShotput',
+      'mbLeadArm'
+    ];
+
+    performanceFields.forEach(field => {
+      const measurement = data.performance?.[field];
+      if (measurement) {
+        const hasAttempts = measurement.attempts?.some(a => a != null);
+        if (hasAttempts && !measurement.value) {
+          missing.push(`${field} best value`);
+        }
+      }
+    });
+
+    return missing;
+  };
+
+  const onSubmit = async (data) => {
+    // Prepare submission data
+    const formData = {
+      ...data,
+      athlete: athleteId || data.athlete,
+      assessmentDate: new Date(data.assessmentDate).toISOString()
+    };
+
+    const missing = checkMissingFields(formData);
+    if (missing.length > 0) {
+      setMissingFields(missing);
+      setSubmissionData(formData);
+      setShowMissingFields(true);
+      return;
+    }
+
+    try {
+      if (id) {
+        await updateMutation.mutateAsync({ id, data: formData });
+      } else {
+        await createMutation.mutateAsync(formData);
+      }
+    } catch (error) {
+      console.error('Error saving assessment:', error);
+    }
+  };
+
+  if (isLoadingAssessment || isLoadingAthletes) return <div>Loading...</div>;
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Basic Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Athlete Selection - Only show if not in athlete-specific context */}
+            {!athleteId && (
+              <div>
+                <Label>Athlete *</Label>
+                <Select 
+                  onValueChange={(value) => setValue('athlete', value)}
+                  defaultValue={watch('athlete')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an athlete" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {athletesData?.data.map((athlete) => (
+                      <SelectItem key={athlete._id} value={athlete._id}>
+                        {athlete.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.athlete && (
+                  <span className="text-red-500 text-sm">{errors.athlete.message}</span>
+                )}
+              </div>
+            )}
+
+            <div>
+              <Label>Assessment Date *</Label>
+              <Input 
+                type="date" 
+                {...register("assessmentDate", { required: "Assessment date is required" })}
+              />
+              {errors.assessmentDate && (
+                <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Movement Screen */}
+      <MovementScreen register={register} />
+
+      {/* Performance Measurements */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance Measurements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PerformanceMeasurements 
+            register={register} 
+            watch={watch} 
+            setValue={setValue}
+          />
+        </CardContent>
+      </Card>
+
+      {/* General Comments */}
+      <Card>
+        <CardHeader>
+          <CardTitle>General Comments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <textarea 
+            {...register("generalComments")}
+            className="min-h-[200px] w-full rounded-md border p-2"
+            placeholder="Enter any additional observations or notes..."
+          />
+        </CardContent>
+      </Card>
+
+      {/* Submit Button */}
+      <Button type="submit" className="w-full">
+        {id ? 'Update' : 'Submit'} Assessment
+      </Button>
+
+      {/* Missing Fields Dialog */}
+      <AlertDialog open={showMissingFields} onOpenChange={setShowMissingFields}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Review Assessment Details</AlertDialogTitle>
+            <AlertDialogDescription>
+              The following fields need attention:
+              <ul className="list-disc pl-6 mt-2 space-y-1">
+                {missingFields.map((field, index) => (
+                  <li key={index} className="text-sm">{field}</li>
+                ))}
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Review</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setShowMissingFields(false);
+                if (submissionData) {
+                  if (id) {
+                    updateMutation.mutate({ id, data: submissionData });
+                  } else {
+                    createMutation.mutate(submissionData);
+                  }
+                }
+              }}
+            >
+              Submit Anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </form>
+  );
+}
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentList.jsx
+
+// src/components/AssessmentList.jsx
+import React, { useState } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
+import { useAthlete } from '../hooks';
+import { useQuery } from '@tanstack/react-query';
+import { assessmentApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -393,7 +898,6 @@ import {
 } from "./ui/alert-dialog";
 
 const SORT_FIELDS = {
-  NAME: 'name',
   DATE: 'assessmentDate'
 };
 
@@ -402,90 +906,33 @@ const SORT_DIRECTIONS = {
   DESC: 'desc'
 };
 
-const AssessmentList = () => {
-  const [assessments, setAssessments] = useState([]);
-  const [filteredAssessments, setFilteredAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
+// Rename the component to match the export
+export default function AssessmentList() {
+  const { athleteId } = useParams();
+  const location = useLocation();
+  const isAthleteView = Boolean(athleteId);
   
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  // State
+  const [deleteId, setDeleteId] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
   });
-
-  // Sort state
   const [sortConfig, setSortConfig] = useState({
     field: SORT_FIELDS.DATE,
     direction: SORT_DIRECTIONS.DESC
   });
 
-  const sortAssessments = useCallback((assessments, field, direction) => {
-    return [...assessments].sort((a, b) => {
-      if (field === SORT_FIELDS.DATE) {
-        const dateA = new Date(a[field]);
-        const dateB = new Date(b[field]);
-        return direction === SORT_DIRECTIONS.ASC 
-          ? dateA - dateB 
-          : dateB - dateA;
-      }
-      
-      if (field === SORT_FIELDS.NAME) {
-        const nameA = a[field].toLowerCase();
-        const nameB = b[field].toLowerCase();
-        return direction === SORT_DIRECTIONS.ASC 
-          ? nameA.localeCompare(nameB)
-          : nameB.localeCompare(nameA);
-      }
-      return 0;
-    });
-  }, []);
-
-  const applyFilters = useCallback((data, search) => {
-    let filtered = [...data];
-    
-    if (search) {
-      filtered = filtered.filter(assessment => 
-        assessment.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    
-    // Apply sorting
-    filtered = sortAssessments(filtered, sortConfig.field, sortConfig.direction);
-    
-    setFilteredAssessments(filtered);
-  }, [sortAssessments, sortConfig.field, sortConfig.direction]);
-
-  const fetchAssessments = useCallback(async () => {
-    try {
-      let url = 'http://localhost:5000/api/assessments';
-      const params = new URLSearchParams();
-      
-      if (dateRange.startDate) params.append('startDate', dateRange.startDate);
-      if (dateRange.endDate) params.append('endDate', dateRange.endDate);
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url);
-      const data = await response.json();
-      setAssessments(data.data);
-      applyFilters(data.data, searchTerm);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  }, [dateRange.startDate, dateRange.endDate, searchTerm, applyFilters]);
-
-  const handleSearch = (event) => {
-    const value = event.target.value;
-    setSearchTerm(value);
-    applyFilters(assessments, value);
-  };
+  // Queries
+  const { data: athleteData } = useAthlete(athleteId);
+  const { data: assessmentsData, isLoading } = useQuery({
+    queryKey: ['assessments', { athleteId, ...dateRange }],
+    queryFn: () => assessmentApi.getAssessments({ 
+      athleteId,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate
+    })
+  });
 
   const handleDateChange = (field, value) => {
     setDateRange(prev => ({
@@ -494,198 +941,185 @@ const AssessmentList = () => {
     }));
   };
 
-  const handleSort = (field) => {
+  const handleSort = () => {
     setSortConfig(current => ({
-      field,
-      direction: 
-        current.field === field && current.direction === SORT_DIRECTIONS.ASC
-          ? SORT_DIRECTIONS.DESC
-          : SORT_DIRECTIONS.ASC
+      field: SORT_FIELDS.DATE,
+      direction: current.direction === SORT_DIRECTIONS.ASC
+        ? SORT_DIRECTIONS.DESC
+        : SORT_DIRECTIONS.ASC
     }));
   };
 
-  const getSortIcon = (field) => {
-    if (sortConfig.field !== field) {
-      return <ArrowUpDown className="h-4 w-4 text-muted-foreground" />;
-    }
+  const getSortIcon = () => {
     return sortConfig.direction === SORT_DIRECTIONS.ASC 
       ? <ChevronUp className="h-4 w-4" />
       : <ChevronDown className="h-4 w-4" />;
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
     setDateRange({ startDate: '', endDate: '' });
-    applyFilters(assessments, '');
   };
-
-  useEffect(() => {
-    fetchAssessments();
-  }, [fetchAssessments]);
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/assessments/${deleteId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete assessment');
-      }
-
-      fetchAssessments();
+      await assessmentApi.deleteAssessment(deleteId);
+      setDeleteId(null);
     } catch (error) {
       console.error('Error deleting assessment:', error);
-    } finally {
-      setDeleteId(null);
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const sortedAssessments = [...(assessmentsData?.data || [])].sort((a, b) => {
+    const dateA = new Date(a.assessmentDate);
+    const dateB = new Date(b.assessmentDate);
+    return sortConfig.direction === SORT_DIRECTIONS.ASC 
+      ? dateA - dateB 
+      : dateB - dateA;
+  });
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Athlete Assessments</h1>
-          <Link to="/assessments/add">
-            <Button>Add New Assessment</Button>
-          </Link>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">
+          {isAthleteView 
+            ? `Assessments for ${athleteData?.data.name}`
+            : 'All Assessments'}
+        </h1>
+        <Link to={isAthleteView ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"}>
+          <Button>Add New Assessment</Button>
+        </Link>
+      </div>
+      
+      {/* Filters Section */}
+      <Card>
+        <CardContent className="pt-6 pb-4">
+          <div className="flex gap-4 items-end">
+            {/* Date Filters */}
+            <div className="flex-[0.25] space-y-1">
+              <Label className="text-sm">Start Date</Label>
+              <Input
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) => handleDateChange('startDate', e.target.value)}
+              />
+            </div>
+            <div className="flex-[0.25] space-y-1">
+              <Label className="text-sm">End Date</Label>
+              <Input
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) => handleDateChange('endDate', e.target.value)}
+              />
+            </div>
+
+            {/* Clear Filters Button */}
+            {(dateRange.startDate || dateRange.endDate) && (
+              <div className="flex-none">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={clearFilters}
+                  className="h-10 w-10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sort Controls */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Showing {sortedAssessments.length} assessments
         </div>
-        
-        {/* Filters Section */}
-        <Card>
-          <CardContent className="pt-6 pb-4">
-            <div className="flex gap-4 items-end">
-              {/* Search Bar - 50% */}
-              <div className="relative flex-[0.5] space-y-1">
-                <Label className="text-sm">Name</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by athlete name..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="pl-8"
-                  />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2"
+          onClick={handleSort}
+        >
+          Date
+          {getSortIcon()}
+        </Button>
+      </div>
+
+      {/* Assessment Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {sortedAssessments.map((assessment) => (
+          <Card 
+            key={assessment._id} 
+            className="hover:shadow-md transition-shadow duration-200"
+          >
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="font-semibold mb-1">
+                    {new Date(assessment.assessmentDate).toLocaleDateString()}
+                  </CardTitle>
+                  {!isAthleteView && assessment.athlete && (
+                    <p className="text-sm text-muted-foreground">
+                      Athlete: {assessment.athlete.name}
+                    </p>
+                  )}
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
+                  onClick={() => setDeleteId(assessment._id)}
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
               </div>
-
-              {/* Date Filters - 25% each */}
-              <div className="flex-[0.25] space-y-1">
-                <Label className="text-sm">Start Date</Label>
-                <Input
-                  type="date"
-                  value={dateRange.startDate}
-                  onChange={(e) => handleDateChange('startDate', e.target.value)}
-                />
-              </div>
-              <div className="flex-[0.25] space-y-1">
-                <Label className="text-sm">End Date</Label>
-                <Input
-                  type="date"
-                  value={dateRange.endDate}
-                  onChange={(e) => handleDateChange('endDate', e.target.value)}
-                />
-              </div>
-
-              {/* Clear Filters Button */}
-              {(searchTerm || dateRange.startDate || dateRange.endDate) && (
-                <div className="flex-none">
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={clearFilters}
-                    className="h-10 w-10"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {assessment.performance && (
+                <div className="mb-4 space-y-1">
+                  {assessment.performance.verticalJump?.value && (
+                    <p className="text-sm">Vertical Jump: {assessment.performance.verticalJump.value}"</p>
+                  )}
+                  {assessment.performance.broadJump?.value && (
+                    <p className="text-sm">Broad Jump: {assessment.performance.broadJump.value}"</p>
+                  )}
+                  {assessment.performance.tenYardSprint?.value && (
+                    <p className="text-sm">10-Yard Sprint: {assessment.performance.tenYardSprint.value}s</p>
+                  )}
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sort Controls */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredAssessments.length} assessments
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => handleSort(SORT_FIELDS.NAME)}
-            >
-              Name
-              {getSortIcon(SORT_FIELDS.NAME)}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => handleSort(SORT_FIELDS.DATE)}
-            >
-              Date
-              {getSortIcon(SORT_FIELDS.DATE)}
-            </Button>
-          </div>
-        </div>
-
-        {/* Assessment Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredAssessments.map((assessment) => (
-            <Card 
-              key={assessment._id} 
-              className="hover:shadow-md transition-shadow duration-200"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="font-semibold mb-1">
-                      {assessment.name}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(assessment.assessmentDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
-                    onClick={() => setDeleteId(assessment._id)}
-                  >
-                    <Trash2 className="h-5 w-5" />
+              <div className="flex gap-2">
+                <Link 
+                  to={isAthleteView 
+                    ? `/athletes/${athleteId}/assessments/${assessment._id}`
+                    : `/assessments/${assessment._id}`
+                  } 
+                  className="flex-1"
+                >
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View
                   </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-2">
-                  <Link to={`/assessments/${assessment._id}`} className="flex-1">
-                    <Button variant="outline" className="w-full" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
-                  </Link>
-                  <Link to={`/assessments/edit/${assessment._id}`} className="flex-1">
-                    <Button variant="outline" className="w-full" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </Link>
+                <Link 
+                  to={isAthleteView
+                    ? `/athletes/${athleteId}/assessments/${assessment._id}/edit`
+                    : `/assessments/edit/${assessment._id}`
+                  } 
+                  className="flex-1"
+                >
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -693,8 +1127,7 @@ const AssessmentList = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              assessment record for {assessments.find(a => a._id === deleteId)?.name}.
+              This action cannot be undone. This will permanently delete this assessment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -708,41 +1141,924 @@ const AssessmentList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
+  );
+}
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteDetail.jsx
+
+
+// components/AthleteDetail.jsx
+import React from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { useAthlete } from '../hooks';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+
+export const AthleteDetail = () => {
+  const { id } = useParams();
+  const { data, isLoading } = useAthlete(id);
+
+  if (isLoading) return <div>Loading...</div>;
+  if (!data) return <div>Athlete not found</div>;
+
+  const athlete = data.data;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">{athlete.name}</h1>
+        <div className="space-x-2">
+          <Link to={`/athletes/${id}/edit`}>
+            <Button variant="outline">Edit Athlete</Button>
+          </Link>
+          <Link to={`/athletes/${id}/assessment/new`}>
+            <Button>New Assessment</Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Athlete Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p>Age: {athlete.age || 'N/A'}</p>
+            <p>Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'}</p>
+            <p>Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}</p>
+            <p>Date of Birth: {athlete.dateOfBirth ? new Date(athlete.dateOfBirth).toLocaleDateString() : 'N/A'}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Assessment History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {athlete.assessments?.map((assessment) => (
+                <Link 
+                  key={assessment._id} 
+                  to={`/athletes/${id}/assessments/${assessment._id}`}
+                  className="block"
+                >
+                  <div className="p-4 border rounded-lg hover:bg-gray-50">
+                    <p className="font-medium">
+                      {new Date(assessment.assessmentDate).toLocaleDateString()}
+                    </p>
+                    {/* Add more assessment summary info as needed */}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 
-export default AssessmentList;
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteForm.jsx
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteAssessmentForm.js
-
-// src/components/AthleteAssessmentForm.jsx
-import React, { useEffect, useState } from 'react';
+// components/AthleteForm.jsx
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAthlete, useCreateAthlete, useUpdateAthlete } from '../hooks';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
 import { Label } from './ui/label';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "./ui/alert-dialog";
 
-const MovementScreenTable = ({ register }) => {
+export const AthleteForm = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { data: athleteData, isLoading } = useAthlete(id);
+  const createAthlete = useCreateAthlete();
+  const updateAthlete = useUpdateAthlete();
+  
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: athleteData?.data
+  });
+
+  const onSubmit = async (data) => {
+    try {
+      if (id) {
+        await updateAthlete.mutateAsync({ id, data });
+      } else {
+        await createAthlete.mutateAsync(data);
+      }
+      navigate('/athletes');
+    } catch (error) {
+      console.error('Error saving athlete:', error);
+    }
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Card>
+        <CardHeader>
+          <CardTitle>{id ? 'Edit' : 'New'} Athlete</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Name *</Label>
+            <Input {...register('name', { required: 'Name is required' })} />
+            {errors.name && (
+              <span className="text-red-500 text-sm">{errors.name.message}</span>
+            )}
+          </div>
+
+          <div>
+            <Label>Date of Birth</Label>
+            <Input type="date" {...register('dateOfBirth')} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Height (inches)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                {...register('height.value')}
+              />
+            </div>
+            <div>
+              <Label>Weight (lbs)</Label>
+              <Input
+                type="number"
+                step="0.1"
+                {...register('weight.value')}
+              />
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full">
+            {id ? 'Update' : 'Create'} Athlete
+          </Button>
+        </CardContent>
+      </Card>
+    </form>
+  );
+};
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteList.jsx
+
+// components/AthleteList.jsx
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAthletes } from '../hooks';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Search, X } from 'lucide-react';
+
+export const AthleteList = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const { data, isLoading } = useAthletes({ search: searchTerm });
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Athletes</h1>
+        <Link to="/athletes/new">
+          <Button>Add New Athlete</Button>
+        </Link>
+      </div>
+
+      <div className="relative">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search athletes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-8"
+        />
+        {searchTerm && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute right-2 top-2"
+            onClick={() => setSearchTerm('')}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {data?.data.map((athlete) => (
+          <Link key={athlete._id} to={`/athletes/${athlete._id}`}>
+            <Card className="hover:shadow-md transition-shadow duration-200">
+              <CardHeader>
+                <CardTitle>{athlete.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Age: {athlete.age || 'N/A'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Assessments: {athlete.assessments?.length || 0}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ComparisonChart.jsx
+
+// src/components/ComparisonChart.jsx
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import { useAthletes } from '../hooks';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { METRICS } from './constants';
+
+export const ComparisonChart = ({ limit = 10 }) => {
+  const [selectedAthletes, setSelectedAthletes] = useState([]);
+  const [selectedMetrics, setSelectedMetrics] = useState(['verticalJump']);
+  
+  const { data: athletesData } = useAthletes({ limit });
+  
+  const { data: comparisonData, isLoading } = useQuery({
+    queryKey: ['comparativeStats', selectedAthletes, selectedMetrics],
+    queryFn: () => fetch(`/api/statistics/compare?athletes=${selectedAthletes.join(',')}&metrics=${selectedMetrics.join(',')}`)
+      .then(res => res.json()),
+    enabled: selectedAthletes.length > 0 && selectedMetrics.length > 0
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        <div className="w-64">
+          <Select value={selectedAthletes[0]} onValueChange={(value) => setSelectedAthletes([value])}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Athletes" />
+            </SelectTrigger>
+            <SelectContent>
+              {athletesData?.data.map(athlete => (
+                <SelectItem key={athlete._id} value={athlete._id}>
+                  {athlete.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="w-64">
+          <Select value={selectedMetrics[0]} onValueChange={(value) => setSelectedMetrics([value])}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Metrics" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(METRICS).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="h-[400px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={comparisonData?.data || []}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="athleteName" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {selectedMetrics.map(metric => (
+              <Bar
+                key={metric}
+                dataKey={metric}
+                name={METRICS[metric].label}
+                fill={`#${Math.floor(Math.random()*16777215).toString(16)}`}
+              />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+};
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\constants.js
+
+// src/components/constants.js
+export const METRICS = {
+    verticalJump: { label: 'Vertical Jump', unit: 'inches' },
+    broadJump: { label: 'Broad Jump', unit: 'inches' },
+    tenYardSprint: { label: '10-Yard Sprint', unit: 'seconds' },
+    ohmbThrow: { label: 'OH MB Throw', unit: 'inches' },
+    mbShotput: { label: 'MB Shotput', unit: 'inches' },
+    mbLeadArm: { label: 'MB Lead Arm', unit: 'inches' }
+  };
+  
+  export const TIMEFRAMES = {
+    '1m': 'Last Month',
+    '3m': 'Last 3 Months',
+    '6m': 'Last 6 Months',
+    '1y': 'Last Year'
+  };
+  
+  export const SORT_FIELDS = {
+    DATE: 'assessmentDate'
+  };
+  
+  export const SORT_DIRECTIONS = {
+    ASC: 'asc',
+    DESC: 'desc'
+  };
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\Dashboard.js
+
+// src/components/Dashboard.js
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { athleteApi, assessmentApi } from '../services/api';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Link } from 'react-router-dom';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  BarChart,
+  Bar
+} from 'recharts';
+import { formatDistanceToNow } from 'date-fns';
+
+const Dashboard = () => {
+  // Fetch athletes and recent assessments
+  const { data: athletesData } = useQuery({
+    queryKey: ['athletes'],
+    queryFn: () => athleteApi.getAthletes({ limit: 100 })
+  });
+
+  const { data: assessmentsData } = useQuery({
+    queryKey: ['assessments'],
+    queryFn: () => assessmentApi.getAssessments({ limit: 50 })
+  });
+
+  const calculateStats = () => {
+    if (!athletesData?.data || !assessmentsData?.data) return null;
+
+    const totalAthletes = athletesData.data.length;
+    const totalAssessments = assessmentsData.data.length;
+    const assessmentsThisMonth = assessmentsData.data.filter(a => {
+      const assessmentDate = new Date(a.assessmentDate);
+      const today = new Date();
+      return assessmentDate.getMonth() === today.getMonth() &&
+             assessmentDate.getFullYear() === today.getFullYear();
+    }).length;
+
+    const avgAssessmentsPerAthlete = totalAthletes > 0
+      ? (totalAssessments / totalAthletes).toFixed(1)
+      : 0;
+
+    return {
+      totalAthletes,
+      totalAssessments,
+      assessmentsThisMonth,
+      avgAssessmentsPerAthlete
+    };
+  };
+
+  const preparePerformanceData = () => {
+    if (!assessmentsData?.data) return [];
+
+    // Group assessments by athlete
+    const athleteData = {};
+    assessmentsData.data.forEach(assessment => {
+      if (!athleteData[assessment.athlete?._id]) {
+        athleteData[assessment.athlete?._id] = {
+          name: assessment.athlete?.name,
+          assessments: []
+        };
+      }
+      
+      athleteData[assessment.athlete?._id].assessments.push({
+        date: new Date(assessment.assessmentDate).toLocaleDateString(),
+        verticalJump: assessment.performance?.verticalJump?.value || 0,
+        broadJump: assessment.performance?.broadJump?.value || 0,
+        sprint: assessment.performance?.tenYardSprint?.value || 0
+      });
+    });
+
+    return Object.values(athleteData);
+  };
+
+  const prepareRecentActivity = () => {
+    if (!assessmentsData?.data) return [];
+    
+    return assessmentsData.data
+      .slice(0, 5)
+      .map(assessment => ({
+        athleteName: assessment.athlete?.name,
+        date: assessment.assessmentDate,
+        id: assessment._id,
+        athleteId: assessment.athlete?._id
+      }));
+  };
+
+  const stats = calculateStats();
+  const performanceData = preparePerformanceData();
+  const recentActivity = prepareRecentActivity();
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="space-x-2">
+          <Link to="/athletes/new">
+            <Button variant="outline">Add Athlete</Button>
+          </Link>
+          <Link to="/assessments/add">
+            <Button>New Assessment</Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Summary Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Athletes
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.totalAthletes || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Assessments
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.totalAssessments || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Assessments This Month
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.assessmentsThisMonth || 0}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">
+              Avg Assessments per Athlete
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {stats?.avgAssessmentsPerAthlete || 0}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Performance Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Vertical Jump Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={performanceData?.[0]?.assessments || []}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="verticalJump" 
+                  stroke="#2563eb" 
+                  name="Vertical Jump (inches)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Sprint Time Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={performanceData?.[0]?.assessments || []}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="sprint" 
+                  stroke="#dc2626" 
+                  name="10-Yard Sprint (seconds)"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Assessments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {recentActivity.map((activity) => (
+              <div 
+                key={activity.id}
+                className="flex justify-between items-center border-b pb-2 last:border-0"
+              >
+                <div>
+                  <Link 
+                    to={`/athletes/${activity.athleteId}`}
+                    className="font-medium hover:text-blue-600"
+                  >
+                    {activity.athleteName}
+                  </Link>
+                  <p className="text-sm text-gray-500">
+                    {formatDistanceToNow(new Date(activity.date), { addSuffix: true })}
+                  </p>
+                </div>
+                <Link 
+                  to={`/athletes/${activity.athleteId}/assessments/${activity.id}`}
+                >
+                  <Button variant="outline" size="sm">
+                    View Assessment
+                  </Button>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\FeetInchesInput.jsx
+
+import React from 'react';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+
+const FeetInchesInput = ({ 
+  label, 
+  value, 
+  onChange, 
+  placeholder = "", 
+  className,
+  onValueChange 
+}) => {
+  const parseInput = (input) => {
+    // Handle empty input
+    if (!input) {
+      onValueChange(null);
+      return true;
+    }
+
+    // Remove all spaces
+    input = input.replace(/\s+/g, '');
+
+    // Case 1: Simple inches number with optional decimal (e.g., "71" or "71.5")
+    if (/^\d*\.?\d*$/.test(input)) {
+      const inches = parseFloat(input);
+      if (!isNaN(inches)) {
+        onValueChange(inches);
+        return true;
+      }
+    }
+
+    // Case 2: Feet and inches with symbols and optional decimal (e.g., "5'11.5"" or "5'11.5)
+    const feetInchesPattern = /^(\d+)'(\d*\.?\d*)"?$/;
+    const match = input.match(feetInchesPattern);
+    if (match) {
+      const feet = parseInt(match[1], 10);
+      const inches = match[2] ? parseFloat(match[2]) : 0;
+      
+      if (inches >= 12) {
+        return false; // Invalid: inches should be less than 12
+      }
+      
+      const totalInches = (feet * 12) + inches;
+      onValueChange(totalInches);
+      return true;
+    }
+
+    // Case 3: Just feet with symbol (e.g., "5'")
+    const feetOnlyPattern = /^(\d+)'$/;
+    const feetMatch = input.match(feetOnlyPattern);
+    if (feetMatch) {
+      const feet = parseInt(feetMatch[1], 10);
+      onValueChange(feet * 12);
+      return true;
+    }
+
+    return false; // Invalid format
+  };
+
+  const handleChange = (e) => {
+    const newValue = e.target.value;
+    
+    // If it's a valid format, parse and convert
+    if (parseInput(newValue)) {
+      onChange && onChange(e);
+    }
+  };
+
+  return (
+    <div className={className}>
+      {label && <Label>{label}</Label>}
+      <Input
+        value={value || ''}
+        onChange={handleChange}
+        placeholder={placeholder}
+      />
+    </div>
+  );
+};
+
+export default FeetInchesInput;
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\Layout.jsx
+
+// src/components/Layout.jsx
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { cn } from "../lib/utils";
+import {
+  LayoutDashboard,
+  Users,
+  ClipboardList,
+  Menu,
+  X,
+  BarChart2,
+  Settings
+} from 'lucide-react';
+import { Button } from './ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "./ui/sheet";
+
+const mainNav = [
+  {
+    name: 'Dashboard',
+    href: '/',
+    icon: LayoutDashboard,
+    exact: true
+  },
+  {
+    name: 'Athletes',
+    href: '/athletes',
+    icon: Users
+  },
+  {
+    name: 'Assessments',
+    href: '/assessments',
+    icon: ClipboardList
+  },
+  {
+    name: 'Analytics',
+    href: '/analytics',
+    icon: BarChart2
+  }
+];
+
+const NavLink = ({ item, isMobile, onClick }) => {
+  const location = useLocation();
+  const isActive = item.exact 
+    ? location.pathname === item.href 
+    : location.pathname.startsWith(item.href);
+
+  return (
+    <Link
+      to={item.href}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+        isActive
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+      )}
+    >
+      <item.icon className="h-4 w-4" />
+      {item.name}
+    </Link>
+  );
+};
+
+const Sidebar = ({ className }) => {
+  return (
+    <div className={cn("pb-12", className)}>
+      <div className="space-y-4 py-4">
+        <div className="px-3 py-2">
+          <div className="mb-8">
+            <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
+              AthleteDB
+            </h2>
+            <p className="px-4 text-sm text-muted-foreground">
+              Performance Assessment System
+            </p>
+          </div>
+          <div className="space-y-1">
+            {mainNav.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const MobileNav = () => {
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="ghost"
+          className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+        >
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Toggle Menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="pr-0">
+        <Sidebar />
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+const Layout = ({ children }) => {
+  return (
+    <div className="flex min-h-screen">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-[80] bg-background">
+        <Sidebar />
+      </div>
+
+      {/* Mobile Navigation */}
+      <div className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 md:hidden">
+        <MobileNav />
+        <h1 className="font-semibold">AthleteDB</h1>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 md:pl-64">
+        <main className="flex-1 p-8">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\MovementScreen.jsx
+
+// src/components/MovementScreen.jsx
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+const MovementScreen = ({ register }) => {
   const movements = [
-    { name: "Overhead Squat", type: "score" },
-    { name: "Hurdle Step", type: "score" },
-    { name: "Inline Lunge", type: "score" },
-    { name: "Apley's Scratch", type: "passfail", key: "apleysScratch" }
+    { 
+      name: "Overhead Squat", 
+      key: "overheadSquat", 
+      type: "score" 
+    },
+    { 
+      name: "Hurdle Step", 
+      key: "hurdleStep", 
+      type: "score" 
+    },
+    { 
+      name: "Inline Lunge", 
+      key: "inlineLunge", 
+      type: "score" 
+    },
+    { 
+      name: "Apley's Scratch", 
+      key: "apleyScratch", 
+      type: "passfail" 
+    }
   ];
+
+  const renderScoreInput = (movement, side) => {
+    const fieldName = `movementScreen.${movement.key}.score${side}`;
+    
+    if (movement.type === 'score') {
+      return (
+        <Input
+          type="number"
+          min="1"
+          max="3"
+          className="w-20"
+          {...register(fieldName)}
+        />
+      );
+    } else {
+      return (
+        <Select
+          onValueChange={(value) => register(fieldName).onChange({ target: { value }})}
+          {...register(fieldName)}
+        >
+          <SelectTrigger className="w-20">
+            <SelectValue placeholder="--" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">--</SelectItem>
+            <SelectItem value="pass">Pass</SelectItem>
+            <SelectItem value="fail">Fail</SelectItem>
+          </SelectContent>
+        </Select>
+      );
+    }
+  };
 
   return (
     <Card>
@@ -761,69 +2077,30 @@ const MovementScreenTable = ({ register }) => {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {movements.map((movement) => {
-                const key = movement.key || movement.name.toLowerCase().replace(/[']/g, '').replace(/\s+/g, '');
-                return (
-                  <tr key={movement.name} className="bg-white">
-                    <td className="px-6 py-4 font-medium">
-                      {movement.name}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex justify-center">
-                        {movement.type === 'score' ? (
-                          <Input
-                            type="number"
-                            min="1"
-                            max="3"
-                            className="w-20"
-                            {...register(`movementScreen.${key}.scoreLeft`)}
-                          />
-                        ) : (
-                          <select
-                            className="w-20 h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            {...register(`movementScreen.${key}.scoreLeft`)}
-                            defaultValue=""
-                          >
-                            <option value="">Select</option>
-                            <option value="pass">Pass</option>
-                            <option value="fail">Fail</option>
-                          </select>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <div className="flex justify-center">
-                        {movement.type === 'score' ? (
-                          <Input
-                            type="number"
-                            min="1"
-                            max="3"
-                            className="w-20"
-                            {...register(`movementScreen.${key}.scoreRight`)}
-                          />
-                        ) : (
-                          <select
-                            className="w-20 h-10 rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            {...register(`movementScreen.${key}.scoreRight`)}
-                            defaultValue=""
-                          >
-                            <option value="">Select</option>
-                            <option value="pass">Pass</option>
-                            <option value="fail">Fail</option>
-                          </select>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Input
-                        type="text"
-                        placeholder="Add comments..."
-                        {...register(`movementScreen.${key}.comments`)}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
+              {movements.map((movement) => (
+                <tr key={movement.name} className="bg-white">
+                  <td className="px-6 py-4 font-medium">
+                    {movement.name}
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex justify-center">
+                      {renderScoreInput(movement, 'Left')}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <div className="flex justify-center">
+                      {renderScoreInput(movement, 'Right')}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <Input
+                      type="text"
+                      placeholder="Add comments..."
+                      {...register(`movementScreen.${movement.key}.comments`)}
+                    />
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -832,169 +2109,162 @@ const MovementScreenTable = ({ register }) => {
   );
 };
 
-const AthleteAssessmentForm = () => {
-  const { id } = useParams();
-  const [loading, setLoading] = useState(id ? true : false);
-  const navigate = useNavigate();
-  const [showMissingFields, setShowMissingFields] = useState(false);
-  const [missingFields, setMissingFields] = useState([]);
-  const [submissionData, setSubmissionData] = useState(null);
-  
-  const { register, handleSubmit, formState: { errors, ...formState }, reset } = useForm();
+export default MovementScreen;
 
-  useEffect(() => {
-    if (id) {
-      fetch(`http://localhost:5000/api/assessments/${id}`)
-        .then(res => res.json())
-        .then(response => {
-          const data = {
-            ...response.data,
-            assessmentDate: new Date(response.data.assessmentDate).toISOString().split('T')[0],
-            dateOfBirth: new Date(response.data.dateOfBirth).toISOString().split('T')[0]
-          };
-          reset(data);
-          setLoading(false);
-        })
-        .catch(error => {
-          console.error('Error fetching assessment:', error);
-          setLoading(false);
-        });
-    }
-  }, [id, reset]);
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\PerformanceInput.jsx
 
-  const checkMissingFields = (data) => {
-    const missing = [];
-  
-    // Check required fields first
-    if (!data.name) missing.push('Name');
-    if (!data.assessmentDate) missing.push('Assessment Date');
-  
-    // Only check optional fields if they're partially filled
-    const apleysScratch = data.movementScreen?.apleysScratch || {};
-    const hasApleysLeft = apleysScratch.scoreLeft;
-    const hasApleysRight = apleysScratch.scoreRight;
-  
-    // Only add Apley's Scratch to missing fields if one side is filled but not the other
-    if ((hasApleysLeft && !hasApleysRight) || (!hasApleysLeft && hasApleysRight)) {
-      if (!hasApleysLeft) missing.push("Apley's Scratch Left Pass/Fail");
-      if (!hasApleysRight) missing.push("Apley's Scratch Right Pass/Fail");
-    }
-  
-    // Other optional fields
-    if (data.height?.value || data.weight?.value) {
-      if (!data.height?.value) missing.push('Height');
-      if (!data.weight?.value) missing.push('Weight');
-    }
-  
-    // Performance measurements - only check if any are filled
-    const hasPerformanceMeasurements = 
-      data.performanceMeasurements?.verticalJump?.value ||
-      data.performanceMeasurements?.broadJump?.value ||
-      data.performanceMeasurements?.tenYardSprint?.value;
-  
-    if (hasPerformanceMeasurements) {
-      if (!data.performanceMeasurements?.verticalJump?.value) missing.push('Vertical Jump');
-      if (!data.performanceMeasurements?.broadJump?.value) missing.push('Broad Jump');
-      if (!data.performanceMeasurements?.tenYardSprint?.value) missing.push('10-Yard Sprint');
-    }
-  
-    return missing;
-  };
+import React, { useState } from 'react';
+import { Input } from './ui/input';
+import FeetInchesInput from './FeetInchesInput';
 
-  const submitAssessment = async (data) => {
-    try {
-      const url = id 
-        ? `http://localhost:5000/api/assessments/${id}`
-        : 'http://localhost:5000/api/assessments';
-        
-      const response = await fetch(url, {
-        method: id ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
-      });
+const PerformanceInput = ({ 
+  type,
+  value,
+  onChange,
+  placeholder,
+  className,
+  isTimeInput = false
+}) => {
+  const [inputValue, setInputValue] = useState(value || '');
 
-      if (!response.ok) {
-        throw new Error('Failed to submit assessment');
-      }
-      navigate('/');
-    } catch (error) {
-      console.error('Error submitting assessment:', error);
-    }
-  };
+  const handleChange = (e) => {
+    const newValue = e.target.value;
+    setInputValue(newValue); // Update the display value immediately
 
-  const onSubmit = async (data) => {
-    const missing = checkMissingFields(data);
-    if (missing.length > 0) {
-      setMissingFields(missing);
-      setSubmissionData(data);
-      setShowMissingFields(true);
+    // For time inputs, pass through directly
+    if (isTimeInput) {
+      onChange(e);
       return;
     }
-    await submitAssessment(data);
+
+    // For height/distance inputs, validate and convert
+    // Only convert when we have a valid number or feet/inches format
+    if (newValue === '' || newValue === '.') {
+      // Allow empty value or single decimal point
+      setInputValue(newValue);
+    } else if (newValue.includes("'")) {
+      // Handle feet/inches format
+      const feetInchesPattern = /^(\d+)'(\d*\.?\d*)"?$/;
+      const match = newValue.match(feetInchesPattern);
+      if (match) {
+        const feet = parseInt(match[1], 10);
+        const inches = match[2] ? parseFloat(match[2]) : 0;
+        if (inches < 12) {
+          const totalInches = (feet * 12) + inches;
+          onChange({ target: { value: totalInches } });
+        }
+      }
+    } else {
+      // Handle direct number input
+      const parsed = parseFloat(newValue);
+      if (!isNaN(parsed)) {
+        onChange({ target: { value: parsed } });
+      }
+    }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (isTimeInput) {
+    return (
+      <Input
+        type="number"
+        step="0.01"
+        value={value || ''}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={className}
+      />
+    );
   }
 
   return (
-    <div className="container max-w-[1200px] mx-auto">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Information Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="lg:col-span-4">
-                <Label>Full Name *</Label>
-                <Input {...register("name", { required: "Name is required" })} />
-                {errors.name && (
-                  <span className="text-red-500 text-sm">{errors.name.message}</span>
-                )}
-              </div>
-              <div>
-                <Label>Assessment Date *</Label>
-                <Input type="date" {...register("assessmentDate", { required: "Assessment date is required" })} />
-                {errors.assessmentDate && (
-                  <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
-                )}
-              </div>
-              <div>
-  <Label>Date of Birth</Label>
-  <Input type="date" {...register("dateOfBirth")} />
-</div>
-<div>
-  <Label>Age</Label>
-  <Input type="number" {...register("age")} />
-</div>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Label>Height (inches)</Label>
-                  <Input type="number" step="0.1" {...register("height.value")} />
-                </div>
-                <div className="flex-1">
-                  <Label>Weight (lbs)</Label>
-                  <Input type="number" step="0.1" {...register("weight.value")} />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+    <Input
+      type="text"
+      value={inputValue}
+      onChange={handleChange}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+};
 
-        {/* Movement Screen Table */}
-        <MovementScreenTable register={register} />
+export default PerformanceInput;
 
-        {/* Performance & Comments */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-<Card>
-  <CardHeader>
-    <CardTitle>Performance Measurements</CardTitle>
-  </CardHeader>
-  <CardContent>
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\PerformanceMeasurements.jsx
+
+// src/components/PerformanceMeasurements.jsx
+import React, { useEffect } from 'react';
+import { Input } from './ui/input';
+
+const PerformanceMeasurements = ({ register, watch, setValue }) => {
+  const performanceTests = [
+    {
+      name: 'Vertical Jump',
+      key: 'verticalJump',
+      unit: 'inches',
+      type: 'distance'
+    },
+    {
+      name: 'Broad Jump',
+      key: 'broadJump',
+      unit: 'inches',
+      type: 'distance'
+    },
+    {
+      name: '10-Yard Sprint',
+      key: 'tenYardSprint',
+      unit: 'seconds',
+      type: 'time'
+    },
+    {
+      name: 'OH MB Throw',
+      key: 'ohmbThrow',
+      unit: 'inches',
+      type: 'distance'
+    },
+    {
+      name: 'MB Shotput',
+      key: 'mbShotput',
+      unit: 'inches',
+      type: 'distance'
+    },
+    {
+      name: 'MB Lead Arm',
+      key: 'mbLeadArm',
+      unit: 'inches',
+      type: 'distance'
+    }
+  ];
+
+  // Watch all attempts for all tests
+  const attemptValues = {};
+  performanceTests.forEach(test => {
+    attemptValues[test.key] = Array(3).fill(0).map((_, i) => 
+      watch(`performance.${test.key}.attempts[${i}]`)
+    );
+  });
+
+  // Update best values whenever attempts change
+  useEffect(() => {
+    performanceTests.forEach(test => {
+      const attempts = attemptValues[test.key]
+        .map(Number)
+        .filter(v => !isNaN(v) && v > 0);
+
+      if (attempts.length > 0) {
+        const bestValue = test.type === 'time'
+          ? Math.min(...attempts)
+          : Math.max(...attempts);
+
+        setValue(
+          `performance.${test.key}.value`,
+          bestValue,
+          { shouldDirty: true }
+        );
+      }
+    });
+  }, [Object.values(attemptValues).flat(), setValue]);
+
+  return (
     <div className="overflow-x-auto">
       <table className="w-full border-collapse">
         <thead>
@@ -1007,518 +2277,135 @@ const AthleteAssessmentForm = () => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td className="border p-2">Vertical Jump (inches)</td>
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.1"
-                {...register('performanceMeasurements.verticalJump.attempt1')}
-              />
-            </td>
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.1"
-                {...register('performanceMeasurements.verticalJump.attempt2')}
-              />  
-            </td>
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.1"
-                {...register('performanceMeasurements.verticalJump.attempt3')}
-              />
-            </td>
-            <td className="border p-2 font-bold">
-              {Math.max(
-                Number(formState.performanceMeasurements?.verticalJump?.attempt1 || 0),
-                Number(formState.performanceMeasurements?.verticalJump?.attempt2 || 0),  
-                Number(formState.performanceMeasurements?.verticalJump?.attempt3 || 0)
-              ).toFixed(1)}
-            </td>
-          </tr>
-          <tr>
-            <td className="border p-2">Broad Jump (inches)</td>
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.1"  
-                {...register('performanceMeasurements.broadJump.attempt1')}
-              />
-            </td>
-            <td className="border p-2">
-              <Input 
-                type="number"
-                step="0.1"
-                {...register('performanceMeasurements.broadJump.attempt2')} 
-              />
-            </td>
-            <td className="border p-2">
-              <Input
-                type="number" 
-                step="0.1"
-                {...register('performanceMeasurements.broadJump.attempt3')}
-              />
-            </td>
-            <td className="border p-2 font-bold">
-              {Math.max(
-                Number(formState.performanceMeasurements?.broadJump?.attempt1 || 0),
-                Number(formState.performanceMeasurements?.broadJump?.attempt2 || 0),
-                Number(formState.performanceMeasurements?.broadJump?.attempt3 || 0)  
-              ).toFixed(1)}
-            </td>
-          </tr>
-          <tr>
-            <td className="border p-2">10-Yard Sprint (seconds)</td>  
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.01" 
-                {...register('performanceMeasurements.tenYardSprint.attempt1')}
-              />
-            </td>
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.01"
-                {...register('performanceMeasurements.tenYardSprint.attempt2')} 
-              />
-            </td>
-            <td className="border p-2">
-              <Input
-                type="number"
-                step="0.01"
-                {...register('performanceMeasurements.tenYardSprint.attempt3')}
-              /> 
-            </td>
-            <td className="border p-2 font-bold">
-              {Math.min(
-                Number(formState.performanceMeasurements?.tenYardSprint?.attempt1 || Infinity), 
-                Number(formState.performanceMeasurements?.tenYardSprint?.attempt2 || Infinity),
-                Number(formState.performanceMeasurements?.tenYardSprint?.attempt3 || Infinity)
-              ).toFixed(2)}
-            </td>
-          </tr>
+          {performanceTests.map((test) => (
+            <tr key={test.key}>
+              <td className="border p-2">
+                {test.name}
+                <span className="text-sm text-gray-500 ml-1">
+                  ({test.unit})
+                </span>
+              </td>
+              {[0, 1, 2].map((attemptIndex) => (
+                <td key={attemptIndex} className="border p-2">
+                  <Input
+                    type="number"
+                    step={test.type === 'time' ? '0.01' : '0.1'}
+                    {...register(`performance.${test.key}.attempts[${attemptIndex}]`)}
+                    className="w-24"
+                    placeholder={`${test.unit}`}
+                  />
+                </td>
+              ))}
+              <td className="border p-2 font-bold">
+                {watch(`performance.${test.key}.value`)
+                  ? `${watch(`performance.${test.key}.value`).toFixed(2)}${
+                      test.type === 'time' ? 's' : '"'
+                    }`
+                  : '-'}
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
-  </CardContent>
-</Card>
-
-{/* General Comments */}
-<Card>
-  <CardHeader>  
-    <CardTitle>General Comments</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <Textarea 
-      {...register("generalComments")}
-      className="min-h-[200px]"
-      placeholder="Enter any additional observations or notes..." 
-    />
-  </CardContent>  
-</Card>
-
-          <div className="lg:col-span-2">
-            <Button type="submit" className="w-full">
-              {id ? 'Update' : 'Submit'} Assessment
-            </Button>
-          </div>
-        </div>
-      </form>
-
-      <AlertDialog open={showMissingFields} onOpenChange={setShowMissingFields}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Missing Optional Information</AlertDialogTitle>
-            <AlertDialogDescription>
-              The following optional fields are not filled out:
-              <ul className="list-disc pl-6 mt-2 space-y-1">
-                {missingFields.map((field, index) => (
-                  <li key={index}>{field}</li>
-                ))}
-              </ul>
-              Would you like to go back and fill them in or continue anyway?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowMissingFields(false)}>
-              Go Back
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setShowMissingFields(false);
-                if (submissionData) {
-                  submitAssessment(submissionData);
-                }
-              }}
-              className="bg-blue-500 hover:bg-blue-600"
-            >
-              Continue Anyway
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
   );
 };
 
-export default AthleteAssessmentForm;
+export default PerformanceMeasurements;
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteDetail.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\TrendsChart.jsx
 
-
-
-// Content from: C:\MyPrograms\athleteDB\client\src\components\Dashboard.js
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+// src/components/TrendsChart.jsx
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   LineChart,
   Line,
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
-
-const Dashboard = () => {
-  const [assessments, setAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('http://localhost:5000/api/assessments')
-      .then(res => res.json())
-      .then(data => {
-        setAssessments(data.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error fetching assessments:', err);
-        setLoading(false);
-      });
-  }, []);
-
-  // Calculate summary statistics
-  const calculateStats = () => {
-    if (!assessments.length) return null;
-
-    return {
-      totalAthletes: new Set(assessments.map(a => a.name)).size,
-      totalAssessments: assessments.length,
-      avgAssessmentsPerAthlete: (assessments.length / new Set(assessments.map(a => a.name)).size).toFixed(1)
-    };
-  };
-
-  // Prepare performance data for line chart
-  const preparePerformanceData = () => {
-    const athleteData = {};
-    
-    assessments.forEach(assessment => {
-      if (!athleteData[assessment.name]) {
-        athleteData[assessment.name] = [];
-      }
-      
-      athleteData[assessment.name].push({
-        date: new Date(assessment.assessmentDate).toLocaleDateString(),
-        verticalJump: assessment.performanceMeasurements?.verticalJump?.value || 0,
-        broadJump: assessment.performanceMeasurements?.broadJump?.value || 0,
-        sprint: assessment.performanceMeasurements?.tenYardSprint?.value || 0
-      });
-    });
-
-    return athleteData;
-  };
-
-  // Prepare movement screen data for radar chart
-  const prepareMovementData = (assessment) => {
-    if (!assessment?.movementScreen) return [];
-
-    return [
-      { movement: 'Overhead Squat', score: assessment.movementScreen.overheadsquat?.score || 0 },
-      { movement: 'Hurdle Step', score: assessment.movementScreen.hurdlestep?.score || 0 },
-      { movement: 'Inline Lunge', score: assessment.movementScreen.inlinelunge?.score || 0 },
-      { movement: "Apley's Scratch", score: assessment.movementScreen.apleysScratch?.score || 0 }
-    ];
-  };
-
-  const stats = calculateStats();
-  const performanceData = preparePerformanceData();
-
-  if (loading) return <div>Loading...</div>;
-
-  return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-
-      {/* Summary Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Athletes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAthletes}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalAssessments}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Avg Assessments per Athlete</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.avgAssessmentsPerAthlete}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Performance Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Vertical Jump Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={Object.values(performanceData)[0]}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="verticalJump" 
-                  stroke="#2563eb" 
-                  name="Vertical Jump (inches)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Latest Movement Screen</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={prepareMovementData(assessments[assessments.length - 1])}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="movement" />
-                <Radar
-                  name="Movement Score"
-                  dataKey="score"
-                  fill="#2563eb"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sprint Time Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={Object.values(performanceData)[0]}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="sprint" 
-                  stroke="#dc2626" 
-                  name="10-Yard Sprint (seconds)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Broad Jump Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={Object.values(performanceData)[0]}>
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="broadJump" 
-                  stroke="#16a34a" 
-                  name="Broad Jump (inches)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-};
-
-export default Dashboard;
-
-// Content from: C:\MyPrograms\athleteDB\client\src\components\Layout.jsx
-
-// src/components/Layout.jsx
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { cn } from "../lib/utils";
 import {
-  LayoutDashboard,
-  ClipboardList,
-  Menu,
-  X
-} from 'lucide-react';
-import { Button } from './ui/button';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { METRICS, TIMEFRAMES } from './constants';
 
-const Sidebar = ({ className, isMobile, onNavClick }) => {
-  const location = useLocation();
-  
-  const navigation = [
-    {
-      name: 'Dashboard',
-      href: '/',
-      icon: LayoutDashboard,
-      exact: true
-    },
-    {
-      name: 'Assessments',
-      href: '/assessments',
-      icon: ClipboardList
-    }
-  ];
+export const TrendsChart = ({ metric: initialMetric = 'verticalJump', timeframe: initialTimeframe = '6m' }) => {
+  const [metric, setMetric] = useState(initialMetric);
+  const [timeframe, setTimeframe] = useState(initialTimeframe);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['performanceTrends', metric, timeframe],
+    queryFn: () => fetch(`/api/statistics/trends?metric=${metric}&timeframe=${timeframe}`)
+      .then(res => res.json())
+  });
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
-    <div className={cn("pb-12 min-h-screen", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-          <h2 className="mb-6 px-4 text-lg font-semibold">AthleteDB</h2>
-          <div className="space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                onClick={isMobile ? onNavClick : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                  (item.exact ? location.pathname === item.href : location.pathname.startsWith(item.href))
-                    ? "bg-gray-100 text-gray-900"
-                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-              </Link>
-            ))}
-          </div>
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        <div className="w-48">
+          <Select value={metric} onValueChange={setMetric}>
+            <SelectTrigger>
+              <SelectValue defaultValue={metric} />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(METRICS).map(([key, { label }]) => (
+                <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+        <div className="w-48">
+          <Select value={timeframe} onValueChange={setTimeframe}>
+            <SelectTrigger>
+              <SelectValue defaultValue={timeframe} />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(TIMEFRAMES).map(([key, label]) => (
+                <SelectItem key={key} value={key}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="h-[400px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data?.data || []}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis 
+              label={{ 
+                value: METRICS[metric].unit, 
+                angle: -90, 
+                position: 'insideLeft' 
+              }} 
+            />
+            <Tooltip />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="average"
+              stroke="#2563eb"
+              name={METRICS[metric].label}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
 };
 
-const Layout = ({ children }) => {
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-
-  return (
-    <div className="flex min-h-screen">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-white border-r">
-        <Sidebar />
-      </div>
-
-      {/* Mobile Menu Button */}
-      <div className="md:hidden fixed top-4 left-4 z-40">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
-        >
-          {showMobileMenu ? (
-            <X className="h-6 w-6" />
-          ) : (
-            <Menu className="h-6 w-6" />
-          )}
-        </Button>
-      </div>
-
-      {/* Mobile Sidebar */}
-      {showMobileMenu && (
-        <div className="fixed inset-0 z-30 bg-white md:hidden">
-          <Sidebar 
-            isMobile={true} 
-            onNavClick={() => setShowMobileMenu(false)} 
-          />
-        </div>
-      )}
-
-      {/* Main Content */}
-      <div className="flex-1 md:ml-64">
-        <main className="p-8">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
-};
-
-export default Layout;
-
-// Content from: C:\MyPrograms\athleteDB\client\src\components\Navbar.js
-
-// client/src/components/Navbar.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-
-const Navbar = () => {
-  return (
-    <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-gray-800">
-              AthleteDB
-            </Link>
-          </div>
-          <div className="flex items-center space-x-4">
-            <Link 
-              to="/add" 
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md"
-            >
-              Add Assessment
-            </Link>
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
-};
-
-export default Navbar;
-
-// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\alert-dialog.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\alert-dialog.jsx
 
 // src/components/ui/alert-dialog.jsx
 import * as React from "react"
@@ -1605,7 +2492,7 @@ export {
   AlertDialogCancel,
 }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\button.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\button.jsx
 
 import * as React from "react"
 import { cn } from "../../lib/utils"
@@ -1625,7 +2512,7 @@ const Button = React.forwardRef(({ className, ...props }, ref) => {
 
 export { Button }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\card.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\card.jsx
 
 // src/components/ui/card.jsx
 import * as React from "react"
@@ -1663,7 +2550,7 @@ const CardTitle = React.forwardRef(({ className, children, ...props }, ref) => (
 
 export { Card, CardHeader, CardContent, CardTitle }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\input.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\input.jsx
 
 import * as React from "react"
 import { cn } from "../../lib/utils"
@@ -1684,7 +2571,7 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
 
 export { Input }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\label.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\label.jsx
 
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
@@ -1703,7 +2590,229 @@ const Label = React.forwardRef(({ className, ...props }, ref) => (
 
 export { Label }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\textarea.jsx
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\select.jsx
+
+// src/components/ui/select.jsx
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown } from "lucide-react"
+
+import { cn } from "../../lib/utils"
+
+const Select = SelectPrimitive.Root
+
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <ChevronDown className="h-4 w-4 opacity-50" />
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectContent = React.forwardRef(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80",
+        position === "popper" && "translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+}
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\sheet.jsx
+
+// src/components/ui/sheet.jsx
+import * as React from "react"
+import * as SheetPrimitive from "@radix-ui/react-dialog"
+import { cva } from "class-variance-authority"
+import { X } from "lucide-react"
+
+// Updated import path to use relative path
+import { cn } from "../../lib/utils"
+
+const Sheet = SheetPrimitive.Root
+
+const SheetTrigger = SheetPrimitive.Trigger
+
+const SheetClose = SheetPrimitive.Close
+
+const SheetPortal = SheetPrimitive.Portal
+
+const SheetOverlay = React.forwardRef(({ className, ...props }, ref) => (
+  <SheetPrimitive.Overlay
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props}
+    ref={ref}
+  />
+))
+SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
+
+const sheetVariants = cva(
+  "fixed z-50 gap-4 bg-background p-6 shadow-lg transition ease-in-out data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
+  {
+    variants: {
+      side: {
+        top: "inset-x-0 top-0 border-b data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top",
+        bottom:
+          "inset-x-0 bottom-0 border-t data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
+        left: "inset-y-0 left-0 h-full w-3/4 border-r data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left sm:max-w-sm",
+        right:
+          "inset-y-0 right-0 h-full w-3/4 border-l data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right sm:max-w-sm",
+      },
+    },
+    defaultVariants: {
+      side: "right",
+    },
+  }
+)
+
+const SheetContent = React.forwardRef(({ side = "right", className, children, ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
+      {children}
+      <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </SheetPrimitive.Close>
+    </SheetPrimitive.Content>
+  </SheetPortal>
+))
+SheetContent.displayName = SheetPrimitive.Content.displayName
+
+const SheetHeader = ({
+  className,
+  ...props
+}) => (
+  <div
+    className={cn("flex flex-col space-y-2 text-center sm:text-left", className)}
+    {...props}
+  />
+)
+SheetHeader.displayName = "SheetHeader"
+
+const SheetFooter = ({
+  className,
+  ...props
+}) => (
+  <div
+    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+    {...props}
+  />
+)
+SheetFooter.displayName = "SheetFooter"
+
+const SheetTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <SheetPrimitive.Title
+    ref={ref}
+    className={cn("text-lg font-semibold text-foreground", className)}
+    {...props}
+  />
+))
+SheetTitle.displayName = SheetPrimitive.Title.displayName
+
+const SheetDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <SheetPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+SheetDescription.displayName = SheetPrimitive.Description.displayName
+
+export {
+  Sheet,
+  SheetPortal,
+  SheetOverlay,
+  SheetTrigger,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetFooter,
+  SheetTitle,
+  SheetDescription,
+}
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\textarea.jsx
 
 import * as React from "react"
 import { cn } from "../../lib/utils"
@@ -1723,22 +2832,129 @@ const Textarea = React.forwardRef(({ className, ...props }, ref) => {
 
 export { Textarea }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\hooks\useAssessments.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\hooks\index.js
 
+// src/hooks/index.js
+export {
+    useAthletes,
+    useAthlete,
+    useCreateAthlete,
+    useUpdateAthlete,
+    useDeleteAthlete,
+    useAthleteStats,
+    useAthleteTrends,
+    // Assessment hooks
+    useAssessments,
+    useAssessment,
+    useCreateAssessment,
+    useUpdateAssessment,
+    useDeleteAssessment,
+    // Analytics hooks
+    useDashboardStats,
+    usePerformanceTrends,
+    useComparativeStats
+  } from './useData';
 
-// src/hooks/useAssessments.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\hooks\useData.js
+
+// src/hooks/useData.js
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { athleteAssessmentApi } from '../services/api';
+import { athleteApi, assessmentApi, analyticsApi } from '../services/api';
 
-const QUERY_KEYS = {
+// Query Keys
+export const QUERY_KEYS = {
+  athletes: 'athletes',
+  athlete: 'athlete',
+  athleteStats: 'athleteStats',
+  athleteTrends: 'athleteTrends',
   assessments: 'assessments',
   assessment: 'assessment',
+  assessmentStats: 'assessmentStats',
+  dashboardStats: 'dashboardStats',
+  performanceTrends: 'performanceTrends'
 };
 
+// Athlete Hooks
+export function useAthletes(params) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.athletes, params],
+    queryFn: () => athleteApi.getAthletes(params),
+    keepPreviousData: true,
+  });
+}
+
+export function useAthlete(id) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.athlete, id],
+    queryFn: () => athleteApi.getAthlete(id),
+    enabled: !!id,
+  });
+}
+
+export function useAthleteStats(id) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.athleteStats, id],
+    queryFn: () => athleteApi.getAthleteStats(id),
+    enabled: !!id,
+  });
+}
+
+export function useAthleteTrends(id, metric) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.athleteTrends, id, metric],
+    queryFn: () => athleteApi.getAthleteTrends(id, metric),
+    enabled: !!id && !!metric,
+  });
+}
+
+export function useCreateAthlete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data) => athleteApi.createAthlete(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(QUERY_KEYS.athletes);
+    },
+  });
+}
+
+export function useUpdateAthlete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }) => athleteApi.updateAthlete(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries([QUERY_KEYS.athlete, variables.id]);
+      queryClient.invalidateQueries(QUERY_KEYS.athletes);
+    },
+  });
+}
+
+export function useDeleteAthlete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => athleteApi.deleteAthlete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(QUERY_KEYS.athletes);
+    },
+  });
+}
+
+// Assessment Hooks
 export function useAssessments(params) {
   return useQuery({
     queryKey: [QUERY_KEYS.assessments, params],
-    queryFn: () => athleteAssessmentApi.getAssessments(params),
+    queryFn: () => assessmentApi.getAssessments(params),
+    keepPreviousData: true,
+  });
+}
+
+export function useAthleteAssessments(athleteId, params) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.assessments, athleteId, params],
+    queryFn: () => assessmentApi.getAthleteAssessments(athleteId, params),
+    enabled: !!athleteId,
     keepPreviousData: true,
   });
 }
@@ -1746,7 +2962,7 @@ export function useAssessments(params) {
 export function useAssessment(id) {
   return useQuery({
     queryKey: [QUERY_KEYS.assessment, id],
-    queryFn: () => athleteAssessmentApi.getAssessment(id),
+    queryFn: () => assessmentApi.getAssessment(id),
     enabled: !!id,
   });
 }
@@ -1755,9 +2971,10 @@ export function useCreateAssessment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => athleteAssessmentApi.createAssessment(data),
-    onSuccess: () => {
+    mutationFn: (data) => assessmentApi.createAssessment(data),
+    onSuccess: (response) => {
       queryClient.invalidateQueries(QUERY_KEYS.assessments);
+      queryClient.invalidateQueries([QUERY_KEYS.athlete, response.data.athlete]);
     },
   });
 }
@@ -1766,10 +2983,11 @@ export function useUpdateAssessment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }) => athleteAssessmentApi.updateAssessment(id, data),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ id, data }) => assessmentApi.updateAssessment(id, data),
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries([QUERY_KEYS.assessment, variables.id]);
       queryClient.invalidateQueries(QUERY_KEYS.assessments);
+      queryClient.invalidateQueries([QUERY_KEYS.athlete, response.data.athlete]);
     },
   });
 }
@@ -1778,14 +2996,41 @@ export function useDeleteAssessment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => athleteAssessmentApi.deleteAssessment(id),
-    onSuccess: () => {
+    mutationFn: (id) => assessmentApi.deleteAssessment(id),
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries(QUERY_KEYS.assessments);
+      // Since we don't know the athlete ID here, we may need to invalidate all athlete queries
+      queryClient.invalidateQueries(QUERY_KEYS.athletes);
     },
   });
 }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\index.css
+// Analytics Hooks
+export function useDashboardStats() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.dashboardStats],
+    queryFn: () => analyticsApi.getDashboardStats(),
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+  });
+}
+
+export function usePerformanceTrends(metric, timeframe) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.performanceTrends, metric, timeframe],
+    queryFn: () => analyticsApi.getPerformanceTrends(metric, timeframe),
+    enabled: !!metric,
+  });
+}
+
+export function useComparativeStats(athleteIds, metrics) {
+  return useQuery({
+    queryKey: ['comparativeStats', athleteIds, metrics],
+    queryFn: () => analyticsApi.getComparativeStats(athleteIds, metrics),
+    enabled: !!athleteIds?.length && !!metrics?.length,
+  });
+}
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\index.css
 
 @tailwind base;
 @tailwind components;
@@ -1864,7 +3109,7 @@ export function useDeleteAssessment() {
   }
 }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\index.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\index.js
 
 // src/index.js
 import React from 'react';
@@ -1890,7 +3135,7 @@ root.render(
 reportWebVitals();
 
 
-// Content from: C:\MyPrograms\athleteDB\client\src\lib\queryClient.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\lib\queryClient.js
 
 // src/lib/queryClient.js
 import { QueryClient } from '@tanstack/react-query';
@@ -1905,7 +3150,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Content from: C:\MyPrograms\athleteDB\client\src\lib\utils.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\lib\utils.js
 
 // src/lib/utils.js
 import { clsx } from "clsx"
@@ -1915,7 +3160,7 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
-// Content from: C:\MyPrograms\athleteDB\client\src\reportWebVitals.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\reportWebVitals.js
 
 const reportWebVitals = onPerfEntry => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
@@ -1932,13 +3177,14 @@ const reportWebVitals = onPerfEntry => {
 export default reportWebVitals;
 
 
-// Content from: C:\MyPrograms\athleteDB\client\src\services\api.js
+// Content from: C:\MyPrograms\AthleteDB\client\src\services\api.js
 
-// services/api.js
+// src/services/api.js
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+// Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -1946,64 +3192,132 @@ const api = axios.create({
   }
 });
 
-// Add auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Error handling interceptor
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle specific error cases
+    if (error.response) {
+      console.error('API Error:', error.response.data);
+      throw new Error(error.response.data.message || 'An error occurred');
+    } else if (error.request) {
+      console.error('Network Error:', error.request);
+      throw new Error('Network error - please check your connection');
+    } else {
+      console.error('Error:', error.message);
+      throw error;
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
 );
 
-export const athleteAssessmentApi = {
-  // Get all assessments with pagination and filters
-  getAssessments: async (params) => {
+// Athletes API
+export const athleteApi = {
+  getAthletes: async (params = {}) => {
+    const response = await api.get('/athletes', { params });
+    return response.data;
+  },
+
+  getAthlete: async (id) => {
+    const response = await api.get(`/athletes/${id}`);
+    return response.data;
+  },
+
+  createAthlete: async (data) => {
+    const response = await api.post('/athletes', data);
+    return response.data;
+  },
+
+  updateAthlete: async (id, data) => {
+    const response = await api.put(`/athletes/${id}`, data);
+    return response.data;
+  },
+
+  deleteAthlete: async (id) => {
+    const response = await api.delete(`/athletes/${id}`);
+    return response.data;
+  }
+};
+
+// Assessments API
+export const assessmentApi = {
+  getAssessments: async (params = {}) => {
     const response = await api.get('/assessments', { params });
     return response.data;
   },
 
-  // Get single assessment
   getAssessment: async (id) => {
     const response = await api.get(`/assessments/${id}`);
     return response.data;
   },
 
-  // Create new assessment
+  getAthleteAssessments: async (athleteId, params = {}) => {
+    const response = await api.get('/assessments', { 
+      params: { athleteId, ...params } 
+    });
+    return response.data;
+  },
+
   createAssessment: async (data) => {
     const response = await api.post('/assessments', data);
     return response.data;
   },
 
-  // Update assessment
   updateAssessment: async (id, data) => {
     const response = await api.put(`/assessments/${id}`, data);
     return response.data;
   },
 
-  // Delete assessment
   deleteAssessment: async (id) => {
     const response = await api.delete(`/assessments/${id}`);
     return response.data;
   }
 };
 
+// Analytics API
+export const analyticsApi = {
+  // Get dashboard statistics
+  getDashboardStats: async () => {
+    const response = await api.get('/statistics/dashboard');
+    return response.data;
+  },
+
+  // Get performance trends for a specific metric
+  getPerformanceTrends: async (metric, timeframe = '1y') => {
+    const response = await api.get('/statistics/trends', {
+      params: { metric, timeframe }
+    });
+    return response.data;
+  },
+
+  // Get comparative statistics between athletes
+  getComparativeStats: async (athleteIds, metrics) => {
+    const response = await api.get('/statistics/compare', {
+      params: { 
+        athletes: Array.isArray(athleteIds) ? athleteIds.join(',') : athleteIds,
+        metrics: Array.isArray(metrics) ? metrics.join(',') : metrics
+      }
+    });
+    return response.data;
+  },
+
+  // Get athlete statistics
+  getAthleteStats: async (athleteId) => {
+    const response = await api.get(`/athletes/${athleteId}/statistics`);
+    return response.data;
+  },
+
+  // Get athlete performance trends
+  getAthleteTrends: async (athleteId, metric) => {
+    const response = await api.get(`/athletes/${athleteId}/trends`, {
+      params: { metric }
+    });
+    return response.data;
+  }
+};
+
 export default api;
 
-// Content from: C:\MyPrograms\athleteDB\client\src\setupTests.js
-
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toHaveTextContent(/react/i)
-// learn more: https://github.com/testing-library/jest-dom
-import '@testing-library/jest-dom';
-
-
-// Content from: C:\MyPrograms\athleteDB\client\tailwind.config.js
+// Content from: C:\MyPrograms\AthleteDB\client\tailwind.config.js
 
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
@@ -2065,7 +3379,7 @@ module.exports = {
   plugins: [],
 }
 
-// Content from: C:\MyPrograms\athleteDB\combineAllFiles.js
+// Content from: C:\MyPrograms\AthleteDB\combineAllFiles.js
 
 const fs = require('fs');
 const path = require('path');
@@ -2170,7 +3484,7 @@ concatenateFiles(allFiles, combinedFile);
 console.log(`Directory structure has been written to ${structureFile}`);
 
 
-// Content from: C:\MyPrograms\athleteDB\liststructure.js
+// Content from: C:\MyPrograms\AthleteDB\liststructure.js
 
 const fs = require('fs');
 const path = require('path');
@@ -2226,7 +3540,7 @@ listDirectory('.');
 console.log(`Directory structure has been written to ${outputFile}`);
 
 
-// Content from: C:\MyPrograms\athleteDB\server\config\db.js
+// Content from: C:\MyPrograms\AthleteDB\server\config\db.js
 
 // server/config/db.js
 const mongoose = require('mongoose');
@@ -2247,27 +3561,22 @@ const connectDB = async () => {
 module.exports = connectDB;
 
 
-// Content from: C:\MyPrograms\athleteDB\server\controllers\athleteAssessmentController.js
+// Content from: C:\MyPrograms\AthleteDB\server\controllers\assessmentController.js
 
-// server/controllers/athleteAssessmentController.js
-const AthleteAssessment = require('../models/AthleteAssessment');
+// controllers/assessmentController.js
+const { Assessment } = require('../models/Assessment');
 const asyncHandler = require('express-async-handler');
 
-// @desc    Get all athlete assessments
-// @route   GET /api/assessments
 exports.getAssessments = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skipIndex = (page - 1) * limit;
   
   const query = {};
-  
-  // Add search functionality
-  if (req.query.search) {
-    query.name = { $regex: req.query.search, $options: 'i' };
+  if (req.query.athleteId) {
+    query.athlete = req.query.athleteId;
   }
   
-  // Add date range filter
   if (req.query.startDate && req.query.endDate) {
     query.assessmentDate = {
       $gte: new Date(req.query.startDate),
@@ -2275,8 +3584,9 @@ exports.getAssessments = asyncHandler(async (req, res) => {
     };
   }
 
-  const total = await AthleteAssessment.countDocuments(query);
-  const assessments = await AthleteAssessment.find(query)
+  const total = await Assessment.countDocuments(query);
+  const assessments = await Assessment.find(query)
+    .populate('athlete', 'name')
     .sort({ assessmentDate: -1 })
     .limit(limit)
     .skip(skipIndex);
@@ -2291,10 +3601,9 @@ exports.getAssessments = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get single athlete assessment
-// @route   GET /api/assessments/:id
 exports.getAssessment = asyncHandler(async (req, res) => {
-  const assessment = await AthleteAssessment.findById(req.params.id);
+  const assessment = await Assessment.findById(req.params.id)
+    .populate('athlete');
 
   if (!assessment) {
     res.status(404);
@@ -2307,97 +3616,35 @@ exports.getAssessment = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Create athlete assessment
-// @route   POST /api/assessments
 exports.createAssessment = asyncHandler(async (req, res) => {
-  const assessment = await AthleteAssessment.create(req.body);
-
+  const assessment = await Assessment.create(req.body);
+  
   res.status(201).json({
     success: true,
     data: assessment
   });
 });
 
-// @desc    Update athlete assessment
-// @route   PUT /api/assessments/:id
-exports.updateAssessment = async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    // First check if the assessment exists
-    const assessment = await AthleteAssessment.findById(id);
-    if (!assessment) {
-      return res.status(404).json({
-        success: false,
-        error: 'Assessment not found'
-      });
-    }
+exports.updateAssessment = asyncHandler(async (req, res) => {
+  const assessment = await Assessment.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  ).populate('athlete');
 
-    // Prepare the update data
-    const updateData = {
-      name: req.body.name,
-      assessmentDate: req.body.assessmentDate,
-      dateOfBirth: req.body.dateOfBirth,
-      age: req.body.age,
-      height: req.body.height,
-      weight: req.body.weight,
-      
-      movementScreen: {
-        overheadsquat: {
-          scoreLeft: req.body.movementScreen?.overheadsquat?.scoreLeft,
-          scoreRight: req.body.movementScreen?.overheadsquat?.scoreRight,
-          comments: req.body.movementScreen?.overheadsquat?.comments
-        },
-        hurdlestep: {
-          scoreLeft: req.body.movementScreen?.hurdlestep?.scoreLeft,
-          scoreRight: req.body.movementScreen?.hurdlestep?.scoreRight,
-          comments: req.body.movementScreen?.hurdlestep?.comments
-        },
-        inlinelunge: {
-          scoreLeft: req.body.movementScreen?.inlinelunge?.scoreLeft,
-          scoreRight: req.body.movementScreen?.inlinelunge?.scoreRight,
-          comments: req.body.movementScreen?.inlinelunge?.comments
-        },
-        apleysScratch: {
-          scoreLeft: req.body.movementScreen?.apleysScratch?.scoreLeft || '',
-          scoreRight: req.body.movementScreen?.apleysScratch?.scoreRight || '',
-          comments: req.body.movementScreen?.apleysScratch?.comments || ''
-        }
-      },
-      
-      performanceMeasurements: req.body.performanceMeasurements || {},
-      generalComments: req.body.generalComments
-    };
-
-    // Update the assessment with the new data
-    const updatedAssessment = await AthleteAssessment.findByIdAndUpdate(
-      id,
-      updateData,
-      { 
-        new: true,
-        runValidators: true 
-      }
-    );
-
-    return res.status(200).json({
-      success: true,
-      data: updatedAssessment
-    });
-
-  } catch (error) {
-    console.error('Update error:', error);
-    return res.status(500).json({
-      success: false,
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+  if (!assessment) {
+    res.status(404);
+    throw new Error('Assessment not found');
   }
-};
 
-// @desc    Delete athlete assessment
-// @route   DELETE /api/assessments/:id
+  res.status(200).json({
+    success: true,
+    data: assessment
+  });
+});
+
 exports.deleteAssessment = asyncHandler(async (req, res) => {
-  const assessment = await AthleteAssessment.findById(req.params.id);
+  const assessment = await Assessment.findById(req.params.id);
 
   if (!assessment) {
     res.status(404);
@@ -2412,64 +3659,419 @@ exports.deleteAssessment = asyncHandler(async (req, res) => {
   });
 });
 
-// Content from: C:\MyPrograms\athleteDB\server\models\Athlete.js
+// Content from: C:\MyPrograms\AthleteDB\server\controllers\athleteController.js
 
+// server/controllers/athleteController.js
+const { Athlete } = require('../models/Athlete');
+const { Assessment } = require('../models/Assessment');
+const asyncHandler = require('express-async-handler');
 
+// @desc    Get all athletes
+// @route   GET /api/athletes
+exports.getAthletes = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skipIndex = (page - 1) * limit;
+  
+  const query = {};
+  if (req.query.search) {
+    query.name = { $regex: req.query.search, $options: 'i' };
+  }
 
-// Content from: C:\MyPrograms\athleteDB\server\models\AthleteAssessment.js
+  const total = await Athlete.countDocuments(query);
+  const athletes = await Athlete.find(query)
+    .sort({ name: 1 })
+    .limit(limit)
+    .skip(skipIndex);
 
-// models/AthleteAssessment.js
+  res.status(200).json({
+    success: true,
+    count: athletes.length,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+    data: athletes
+  });
+});
+
+// @desc    Get single athlete
+// @route   GET /api/athletes/:id
+exports.getAthlete = asyncHandler(async (req, res) => {
+  const athlete = await Athlete.findById(req.params.id)
+    .populate('assessments');
+
+  if (!athlete) {
+    res.status(404);
+    throw new Error('Athlete not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    data: athlete
+  });
+});
+
+// @desc    Create athlete
+// @route   POST /api/athletes
+exports.createAthlete = asyncHandler(async (req, res) => {
+  const athlete = await Athlete.create(req.body);
+  
+  res.status(201).json({
+    success: true,
+    data: athlete
+  });
+});
+
+// @desc    Update athlete
+// @route   PUT /api/athletes/:id
+exports.updateAthlete = asyncHandler(async (req, res) => {
+  const athlete = await Athlete.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  );
+
+  if (!athlete) {
+    res.status(404);
+    throw new Error('Athlete not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    data: athlete
+  });
+});
+
+// @desc    Delete athlete
+// @route   DELETE /api/athletes/:id
+exports.deleteAthlete = asyncHandler(async (req, res) => {
+  const athlete = await Athlete.findById(req.params.id);
+
+  if (!athlete) {
+    res.status(404);
+    throw new Error('Athlete not found');
+  }
+
+  // Delete associated assessments
+  await Assessment.deleteMany({ athlete: req.params.id });
+
+  await athlete.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
+// @desc    Get athlete statistics
+// @route   GET /api/athletes/:id/statistics
+exports.getAthleteStats = asyncHandler(async (req, res) => {
+  const athlete = await Athlete.findById(req.params.id);
+
+  if (!athlete) {
+    res.status(404);
+    throw new Error('Athlete not found');
+  }
+
+  const assessments = await Assessment.find({ athlete: req.params.id })
+    .sort({ assessmentDate: -1 });
+
+  const stats = {
+    totalAssessments: assessments.length,
+    latestAssessment: assessments[0],
+    performanceHistory: assessments.map(a => ({
+      date: a.assessmentDate,
+      verticalJump: a.performance?.verticalJump?.value,
+      broadJump: a.performance?.broadJump?.value,
+      tenYardSprint: a.performance?.tenYardSprint?.value,
+      ohmbThrow: a.performance?.ohmbThrow?.value,
+      mbShotput: a.performance?.mbShotput?.value,
+      mbLeadArm: a.performance?.mbLeadArm?.value
+    }))
+  };
+
+  res.status(200).json({
+    success: true,
+    data: stats
+  });
+});
+
+// @desc    Get athlete performance trends
+// @route   GET /api/athletes/:id/trends
+exports.getAthleteTrends = asyncHandler(async (req, res) => {
+  const { metric } = req.query;
+  if (!metric) {
+    res.status(400);
+    throw new Error('Metric parameter is required');
+  }
+
+  const athlete = await Athlete.findById(req.params.id);
+  if (!athlete) {
+    res.status(404);
+    throw new Error('Athlete not found');
+  }
+
+  const assessments = await Assessment.find({ 
+    athlete: req.params.id,
+    [`performance.${metric}.value`]: { $exists: true }
+  })
+  .sort('assessmentDate')
+  .select(`assessmentDate performance.${metric}`);
+
+  const trends = assessments.map(a => ({
+    date: a.assessmentDate,
+    value: a.performance[metric].value
+  }));
+
+  res.status(200).json({
+    success: true,
+    data: trends
+  });
+});
+
+// Content from: C:\MyPrograms\AthleteDB\server\controllers\statisticsController.js
+
+// server/controllers/statisticsController.js
+const { Assessment } = require('../models/Assessment');
+const { Athlete } = require('../models/Athlete');
+const asyncHandler = require('express-async-handler');
+
+// Get dashboard statistics
+exports.getDashboardStats = asyncHandler(async (req, res) => {
+  const [totalAthletes, totalAssessments, recentAssessments] = await Promise.all([
+    Athlete.countDocuments(),
+    Assessment.countDocuments(),
+    Assessment.find()
+      .sort({ assessmentDate: -1 })
+      .limit(5)
+      .populate('athlete', 'name')
+  ]);
+
+  // Get this month's assessments
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+  
+  const assessmentsThisMonth = await Assessment.countDocuments({
+    assessmentDate: { $gte: startOfMonth }
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      totalAthletes,
+      totalAssessments,
+      assessmentsThisMonth,
+      recentAssessments,
+      averageAssessmentsPerAthlete: totalAthletes > 0 
+        ? (totalAssessments / totalAthletes).toFixed(1) 
+        : 0
+    }
+  });
+});
+
+// Get performance trends across all athletes
+exports.getPerformanceTrends = asyncHandler(async (req, res) => {
+  const { metric = 'verticalJump', timeframe = '1y' } = req.query;
+  
+  // Calculate date range based on timeframe
+  const endDate = new Date();
+  const startDate = new Date();
+  
+  switch(timeframe) {
+    case '1m':
+      startDate.setMonth(startDate.getMonth() - 1);
+      break;
+    case '3m':
+      startDate.setMonth(startDate.getMonth() - 3);
+      break;
+    case '6m':
+      startDate.setMonth(startDate.getMonth() - 6);
+      break;
+    case '1y':
+    default:
+      startDate.setFullYear(startDate.getFullYear() - 1);
+  }
+
+  // Fetch assessments within date range
+  const assessments = await Assessment.find({
+    assessmentDate: { $gte: startDate, $lte: endDate },
+    [`performance.${metric}.value`]: { $exists: true }
+  })
+  .select(`assessmentDate performance.${metric}.value`)
+  .sort('assessmentDate');
+
+  // Group data by month for trending
+  const trendData = assessments.reduce((acc, assessment) => {
+    const month = new Date(assessment.assessmentDate).toLocaleString('default', { month: 'short' });
+    const value = assessment.performance[metric].value;
+    
+    if (!acc[month]) {
+      acc[month] = { values: [], average: 0 };
+    }
+    
+    acc[month].values.push(value);
+    acc[month].average = acc[month].values.reduce((a, b) => a + b) / acc[month].values.length;
+    
+    return acc;
+  }, {});
+
+  res.status(200).json({
+    success: true,
+    data: Object.entries(trendData).map(([month, data]) => ({
+      month,
+      average: Number(data.average.toFixed(2)),
+      count: data.values.length
+    }))
+  });
+});
+
+// Get comparative statistics for athletes
+exports.getComparativeStats = asyncHandler(async (req, res) => {
+  const { athletes, metrics } = req.query;
+  
+  if (!athletes || !metrics) {
+    res.status(400);
+    throw new Error('Athletes and metrics parameters are required');
+  }
+
+  const athleteIds = athletes.split(',');
+  const metricsList = metrics.split(',');
+
+  // Get latest assessment for each athlete
+  const latestAssessments = await Promise.all(
+    athleteIds.map(async (athleteId) => {
+      const assessment = await Assessment.findOne({ athlete: athleteId })
+        .sort({ assessmentDate: -1 })
+        .populate('athlete', 'name')
+        .select(`athlete performance ${metricsList.join(' ')}`);
+      return assessment;
+    })
+  );
+
+  // Format comparative data
+  const comparativeData = latestAssessments.map(assessment => {
+    const data = {
+      athleteId: assessment.athlete._id,
+      athleteName: assessment.athlete.name
+    };
+
+    metricsList.forEach(metric => {
+      if (assessment.performance && assessment.performance[metric]) {
+        data[metric] = assessment.performance[metric].value;
+      }
+    });
+
+    return data;
+  });
+
+  res.status(200).json({
+    success: true,
+    data: comparativeData
+  });
+});
+
+// Content from: C:\MyPrograms\AthleteDB\server\models\Assessment.js
+
+// models/Assessment.js
 const mongoose = require('mongoose');
 
-// Regular movement screen schema (1-3 scale)
-const movementScreenSchema = new mongoose.Schema({
-  scoreLeft: {
-    type: Number,
-    min: 1,
-    max: 3
-  },
-  scoreRight: {
-    type: Number,
-    min: 1,
-    max: 3
-  },
-  comments: {
-    type: String,
-    trim: true
-  }
-});
+const assessmentSchema = new mongoose.Schema({
+    athlete: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Athlete',
+      required: true
+    },
+    assessmentDate: {
+      type: Date,
+      required: [true, 'Assessment date is required'],
+      default: Date.now
+    },
+    movementScreen: {
+      overheadSquat: {
+        scoreLeft: { type: Number, min: 1, max: 3 },
+        scoreRight: { type: Number, min: 1, max: 3 },
+        comments: String
+      },
+      hurdleStep: {
+        scoreLeft: { type: Number, min: 1, max: 3 },
+        scoreRight: { type: Number, min: 1, max: 3 },
+        comments: String
+      },
+      inlineLunge: {
+        scoreLeft: { type: Number, min: 1, max: 3 },
+        scoreRight: { type: Number, min: 1, max: 3 },
+        comments: String
+      },
+      apleyScratch: {
+        scoreLeft: { type: String, enum: ['pass', 'fail', ''] },
+        scoreRight: { type: String, enum: ['pass', 'fail', ''] },
+        comments: String
+      }
+    },
+    performance: {
+      verticalJump: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'in' }
+      },
+      broadJump: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'in' }
+      },
+      tenYardSprint: {
+        value: Number,
+        attempts: [Number]
+      },
+      ohmbThrow: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'in' }
+      },
+      mbShotput: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'in' }
+      },
+      mbLeadArm: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'in' }
+      }
+    },
+    generalComments: {
+      type: String,
+      trim: true
+    }
+  }, {
+    timestamps: true
+  });
+  
+const Assessment = mongoose.model('Assessment', assessmentSchema);
+  
+module.exports = { Assessment };
 
-// Pass/Fail schema specifically for Apley's test
-const apleyScreenSchema = new mongoose.Schema({
-  scoreLeft: {
-    type: String,
-    enum: ['pass', 'fail', ''],
-    default: ''
-  },
-  scoreRight: {
-    type: String,
-    enum: ['pass', 'fail', ''],
-    default: ''
-  },
-  comments: {
-    type: String,
-    trim: true
-  }
-});
+// Content from: C:\MyPrograms\AthleteDB\server\models\Athlete.js
 
-const athleteAssessmentSchema = new mongoose.Schema({
+// models/Athlete.js
+const mongoose = require('mongoose');
+
+const athleteSchema = new mongoose.Schema({
   name: {
     type: String,
     required: [true, 'Name is required'],
     trim: true
   },
-  assessmentDate: {
+  dateOfBirth: {
     type: Date,
-    required: [true, 'Assessment date is required'],
-    default: Date.now
+    required: false
   },
   height: {
-    value: Number,
+    value: {
+      type: Number,
+      required: false
+    },
     unit: {
       type: String,
       enum: ['in', 'cm'],
@@ -2477,59 +4079,56 @@ const athleteAssessmentSchema = new mongoose.Schema({
     }
   },
   weight: {
-    value: Number,
+    value: {
+      type: Number,
+      required: false
+    },
     unit: {
       type: String,
       enum: ['lbs', 'kg'],
       default: 'lbs'
     }
-  },
-  movementScreen: {
-    overheadsquat: movementScreenSchema,
-    hurdlestep: movementScreenSchema,
-    inlinelunge: movementScreenSchema,
-    apleysScratch: apleyScreenSchema  // Using the specific schema for Apley's
-  },
-  performanceMeasurements: {
-    verticalJump: {
-      value: Number,
-      unit: {
-        type: String,
-        enum: ['in', 'cm'],
-        default: 'in'
-      }
-    },
-    broadJump: {
-      value: Number,
-      unit: {
-        type: String,
-        enum: ['in', 'cm'],
-        default: 'in'
-      }
-    },
-    tenYardSprint: {
-      value: Number
-    }
-  },
-  generalComments: {
-    type: String,
-    trim: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-module.exports = mongoose.model('AthleteAssessment', athleteAssessmentSchema);
+// Virtual for age calculation
+athleteSchema.virtual('age').get(function() {
+  if (!this.dateOfBirth) return null;
+  const today = new Date();
+  const birthDate = new Date(this.dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+});
 
-// Content from: C:\MyPrograms\athleteDB\server\package.json
+// Virtual to populate assessments
+athleteSchema.virtual('assessments', {
+  ref: 'Assessment',
+  localField: '_id',
+  foreignField: 'athlete'
+});
+
+const Athlete = mongoose.model('Athlete', athleteSchema);
+
+module.exports = { Athlete };
+
+// Content from: C:\MyPrograms\AthleteDB\server\package.json
 
 {
   "name": "server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -2548,9 +4147,9 @@ module.exports = mongoose.model('AthleteAssessment', athleteAssessmentSchema);
 }
 
 
-// Content from: C:\MyPrograms\athleteDB\server\routes\athleteAssessment.js
+// Content from: C:\MyPrograms\AthleteDB\server\routes\assessmentRoutes.js
 
-// server/routes/athleteAssessment.js
+// server/routes/assessmentRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -2559,8 +4158,9 @@ const {
   createAssessment,
   updateAssessment,
   deleteAssessment
-} = require('../controllers/athleteAssessmentController');
+} = require('../controllers/assessmentController');
 
+// Assessment CRUD routes
 router.route('/')
   .get(getAssessments)
   .post(createAssessment);
@@ -2572,7 +4172,54 @@ router.route('/:id')
 
 module.exports = router;
 
-// Content from: C:\MyPrograms\athleteDB\server\server.js
+// Content from: C:\MyPrograms\AthleteDB\server\routes\athleteRoutes.js
+
+
+// server/routes/athleteRoutes.js
+const express = require('express');
+const router = express.Router();
+const {
+  getAthletes,
+  getAthlete,
+  createAthlete,
+  updateAthlete,
+  deleteAthlete,
+  getAthleteStats,
+  getAthleteTrends
+} = require('../controllers/athleteController');
+
+// Base athlete CRUD routes
+router.route('/')
+  .get(getAthletes)
+  .post(createAthlete);
+
+router.route('/:id')
+  .get(getAthlete)
+  .put(updateAthlete)
+  .delete(deleteAthlete);
+
+// Analytics routes
+router.get('/:id/statistics', getAthleteStats);
+router.get('/:id/trends', getAthleteTrends);
+
+module.exports = router;
+
+// Content from: C:\MyPrograms\AthleteDB\server\routes\index.js
+
+// server/routes/index.js
+const express = require('express');
+const router = express.Router();
+
+const athleteRoutes = require('./athleteRoutes');
+const assessmentRoutes = require('./assessmentRoutes');
+
+// Mount routes
+router.use('/athletes', athleteRoutes);
+router.use('/assessments', assessmentRoutes);
+
+module.exports = router;
+
+// Content from: C:\MyPrograms\AthleteDB\server\server.js
 
 // server/server.js
 require('dotenv').config();
@@ -2580,8 +4227,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
-
-const athleteRoutes = require('./routes/athleteAssessment');
+const routes = require('./routes');
 
 const app = express();
 
@@ -2592,7 +4238,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-app.use('/api/assessments', athleteRoutes);
+app.use('/api', routes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

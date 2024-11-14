@@ -1,4 +1,4 @@
-// server/routes/athleteAssessment.js
+// server/routes/assessmentRoutes.js
 const express = require('express');
 const router = express.Router();
 const {
@@ -7,8 +7,9 @@ const {
   createAssessment,
   updateAssessment,
   deleteAssessment
-} = require('../controllers/athleteAssessmentController');
+} = require('../controllers/assessmentController');
 
+// Assessment CRUD routes
 router.route('/')
   .get(getAssessments)
   .post(createAssessment);

@@ -1,8 +1,9 @@
-// services/api.js
+// src/services/api.js
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
+// Create axios instance with default config
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -10,48 +11,125 @@ const api = axios.create({
   }
 });
 
-// Add auth token to requests
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+// Error handling interceptor
+api.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle specific error cases
+    if (error.response) {
+      console.error('API Error:', error.response.data);
+      throw new Error(error.response.data.message || 'An error occurred');
+    } else if (error.request) {
+      console.error('Network Error:', error.request);
+      throw new Error('Network error - please check your connection');
+    } else {
+      console.error('Error:', error.message);
+      throw error;
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
   }
 );
 
-export const athleteAssessmentApi = {
-  // Get all assessments with pagination and filters
-  getAssessments: async (params) => {
+// Athletes API
+export const athleteApi = {
+  getAthletes: async (params = {}) => {
+    const response = await api.get('/athletes', { params });
+    return response.data;
+  },
+
+  getAthlete: async (id) => {
+    const response = await api.get(`/athletes/${id}`);
+    return response.data;
+  },
+
+  createAthlete: async (data) => {
+    const response = await api.post('/athletes', data);
+    return response.data;
+  },
+
+  updateAthlete: async (id, data) => {
+    const response = await api.put(`/athletes/${id}`, data);
+    return response.data;
+  },
+
+  deleteAthlete: async (id) => {
+    const response = await api.delete(`/athletes/${id}`);
+    return response.data;
+  }
+};
+
+// Assessments API
+export const assessmentApi = {
+  getAssessments: async (params = {}) => {
     const response = await api.get('/assessments', { params });
     return response.data;
   },
 
-  // Get single assessment
   getAssessment: async (id) => {
     const response = await api.get(`/assessments/${id}`);
     return response.data;
   },
 
-  // Create new assessment
+  getAthleteAssessments: async (athleteId, params = {}) => {
+    const response = await api.get('/assessments', { 
+      params: { athleteId, ...params } 
+    });
+    return response.data;
+  },
+
   createAssessment: async (data) => {
     const response = await api.post('/assessments', data);
     return response.data;
   },
 
-  // Update assessment
   updateAssessment: async (id, data) => {
     const response = await api.put(`/assessments/${id}`, data);
     return response.data;
   },
 
-  // Delete assessment
   deleteAssessment: async (id) => {
     const response = await api.delete(`/assessments/${id}`);
+    return response.data;
+  }
+};
+
+// Analytics API
+export const analyticsApi = {
+  // Get dashboard statistics
+  getDashboardStats: async () => {
+    const response = await api.get('/statistics/dashboard');
+    return response.data;
+  },
+
+  // Get performance trends for a specific metric
+  getPerformanceTrends: async (metric, timeframe = '1y') => {
+    const response = await api.get('/statistics/trends', {
+      params: { metric, timeframe }
+    });
+    return response.data;
+  },
+
+  // Get comparative statistics between athletes
+  getComparativeStats: async (athleteIds, metrics) => {
+    const response = await api.get('/statistics/compare', {
+      params: { 
+        athletes: Array.isArray(athleteIds) ? athleteIds.join(',') : athleteIds,
+        metrics: Array.isArray(metrics) ? metrics.join(',') : metrics
+      }
+    });
+    return response.data;
+  },
+
+  // Get athlete statistics
+  getAthleteStats: async (athleteId) => {
+    const response = await api.get(`/athletes/${athleteId}/statistics`);
+    return response.data;
+  },
+
+  // Get athlete performance trends
+  getAthleteTrends: async (athleteId, metric) => {
+    const response = await api.get(`/athletes/${athleteId}/trends`, {
+      params: { metric }
+    });
     return response.data;
   }
 };

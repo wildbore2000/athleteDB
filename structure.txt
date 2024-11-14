@@ -11,50 +11,64 @@
         |-- robots.txt
     |-- README.md
     |-- src
-        |-- App.css
         |-- App.js
         |-- App.test.js
         |-- components
+            |-- Analytics.jsx
             |-- AssessmentDetail.jsx
+            |-- AssessmentForm.jsx
             |-- AssessmentList.jsx
-            |-- AthleteAssessmentForm.js
             |-- AthleteDetail.jsx
+            |-- AthleteForm.jsx
+            |-- AthleteList.jsx
+            |-- ComparisonChart.jsx
+            |-- constants.js
             |-- Dashboard.js
+            |-- FeetInchesInput.jsx
             |-- Layout.jsx
-            |-- Navbar.js
+            |-- MovementScreen.jsx
+            |-- PerformanceInput.jsx
+            |-- PerformanceMeasurements.jsx
+            |-- TrendsChart.jsx
             |-- ui
                 |-- alert-dialog.jsx
                 |-- button.jsx
                 |-- card.jsx
                 |-- input.jsx
                 |-- label.jsx
+                |-- select.jsx
+                |-- sheet.jsx
                 |-- textarea.jsx
         |-- hooks
-            |-- useAssessments.js
+            |-- index.js
+            |-- useData.js
         |-- index.css
         |-- index.js
         |-- lib
             |-- queryClient.js
             |-- utils.js
-        |-- logo.svg
         |-- reportWebVitals.js
         |-- services
             |-- api.js
-        |-- setupTests.js
     |-- tailwind.config.js
 |-- combineAllFiles.js
 |-- combinedfiles.txt
 |-- liststructure.js
 |-- README.md
 |-- server
+    |-- .env
     |-- config
         |-- db.js
     |-- controllers
-        |-- athleteAssessmentController.js
+        |-- assessmentController.js
+        |-- athleteController.js
+        |-- statisticsController.js
     |-- models
+        |-- Assessment.js
         |-- Athlete.js
-        |-- AthleteAssessment.js
     |-- package.json
     |-- routes
-        |-- athleteAssessment.js
+        |-- assessmentRoutes.js
+        |-- athleteRoutes.js
+        |-- index.js
     |-- server.js

@@ -1,5 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+// src/components/AssessmentList.jsx
+import React, { useState } from 'react';
+import { Link, useParams, useLocation } from 'react-router-dom';
+import { useAthlete } from '../hooks';
+import { useQuery } from '@tanstack/react-query';
+import { assessmentApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -26,7 +30,6 @@ import {
 } from "./ui/alert-dialog";
 
 const SORT_FIELDS = {
-  NAME: 'name',
   DATE: 'assessmentDate'
 };
 
@@ -35,90 +38,33 @@ const SORT_DIRECTIONS = {
   DESC: 'desc'
 };
 
-const AssessmentList = () => {
-  const [assessments, setAssessments] = useState([]);
-  const [filteredAssessments, setFilteredAssessments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
+// Rename the component to match the export
+export default function AssessmentList() {
+  const { athleteId } = useParams();
+  const location = useLocation();
+  const isAthleteView = Boolean(athleteId);
   
-  // Filter states
-  const [searchTerm, setSearchTerm] = useState('');
+  // State
+  const [deleteId, setDeleteId] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: '',
     endDate: ''
   });
-
-  // Sort state
   const [sortConfig, setSortConfig] = useState({
     field: SORT_FIELDS.DATE,
     direction: SORT_DIRECTIONS.DESC
   });
 
-  const sortAssessments = useCallback((assessments, field, direction) => {
-    return [...assessments].sort((a, b) => {
-      if (field === SORT_FIELDS.DATE) {
-        const dateA = new Date(a[field]);
-        const dateB = new Date(b[field]);
-        return direction === SORT_DIRECTIONS.ASC 
-          ? dateA - dateB 
-          : dateB - dateA;
-      }
-      
-      if (field === SORT_FIELDS.NAME) {
-        const nameA = a[field].toLowerCase();
-        const nameB = b[field].toLowerCase();
-        return direction === SORT_DIRECTIONS.ASC 
-          ? nameA.localeCompare(nameB)
-          : nameB.localeCompare(nameA);
-      }
-      return 0;
-    });
-  }, []);
-
-  const applyFilters = useCallback((data, search) => {
-    let filtered = [...data];
-    
-    if (search) {
-      filtered = filtered.filter(assessment => 
-        assessment.name.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-    
-    // Apply sorting
-    filtered = sortAssessments(filtered, sortConfig.field, sortConfig.direction);
-    
-    setFilteredAssessments(filtered);
-  }, [sortAssessments, sortConfig.field, sortConfig.direction]);
-
-  const fetchAssessments = useCallback(async () => {
-    try {
-      let url = 'http://localhost:5000/api/assessments';
-      const params = new URLSearchParams();
-      
-      if (dateRange.startDate) params.append('startDate', dateRange.startDate);
-      if (dateRange.endDate) params.append('endDate', dateRange.endDate);
-      
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const response = await fetch(url);
-      const data = await response.json();
-      setAssessments(data.data);
-      applyFilters(data.data, searchTerm);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  }, [dateRange.startDate, dateRange.endDate, searchTerm, applyFilters]);
-
-  const handleSearch = (event) => {
-    const value = event.target.value;
-    setSearchTerm(value);
-    applyFilters(assessments, value);
-  };
+  // Queries
+  const { data: athleteData } = useAthlete(athleteId);
+  const { data: assessmentsData, isLoading } = useQuery({
+    queryKey: ['assessments', { athleteId, ...dateRange }],
+    queryFn: () => assessmentApi.getAssessments({ 
+      athleteId,
+      startDate: dateRange.startDate,
+      endDate: dateRange.endDate
+    })
+  });
 
   const handleDateChange = (field, value) => {
     setDateRange(prev => ({
@@ -127,198 +73,185 @@ const AssessmentList = () => {
     }));
   };
 
-  const handleSort = (field) => {
+  const handleSort = () => {
     setSortConfig(current => ({
-      field,
-      direction: 
-        current.field === field && current.direction === SORT_DIRECTIONS.ASC
-          ? SORT_DIRECTIONS.DESC
-          : SORT_DIRECTIONS.ASC
+      field: SORT_FIELDS.DATE,
+      direction: current.direction === SORT_DIRECTIONS.ASC
+        ? SORT_DIRECTIONS.DESC
+        : SORT_DIRECTIONS.ASC
     }));
   };
 
-  const getSortIcon = (field) => {
-    if (sortConfig.field !== field) {
-      return <ArrowUpDown className="h-4 w-4 text-muted-foreground" />;
-    }
+  const getSortIcon = () => {
     return sortConfig.direction === SORT_DIRECTIONS.ASC 
       ? <ChevronUp className="h-4 w-4" />
       : <ChevronDown className="h-4 w-4" />;
   };
 
   const clearFilters = () => {
-    setSearchTerm('');
     setDateRange({ startDate: '', endDate: '' });
-    applyFilters(assessments, '');
   };
-
-  useEffect(() => {
-    fetchAssessments();
-  }, [fetchAssessments]);
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/assessments/${deleteId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete assessment');
-      }
-
-      fetchAssessments();
+      await assessmentApi.deleteAssessment(deleteId);
+      setDeleteId(null);
     } catch (error) {
       console.error('Error deleting assessment:', error);
-    } finally {
-      setDeleteId(null);
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <div>Loading...</div>;
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  const sortedAssessments = [...(assessmentsData?.data || [])].sort((a, b) => {
+    const dateA = new Date(a.assessmentDate);
+    const dateB = new Date(b.assessmentDate);
+    return sortConfig.direction === SORT_DIRECTIONS.ASC 
+      ? dateA - dateB 
+      : dateB - dateA;
+  });
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Athlete Assessments</h1>
-          <Link to="/assessments/add">
-            <Button>Add New Assessment</Button>
-          </Link>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">
+          {isAthleteView 
+            ? `Assessments for ${athleteData?.data.name}`
+            : 'All Assessments'}
+        </h1>
+        <Link to={isAthleteView ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"}>
+          <Button>Add New Assessment</Button>
+        </Link>
+      </div>
+      
+      {/* Filters Section */}
+      <Card>
+        <CardContent className="pt-6 pb-4">
+          <div className="flex gap-4 items-end">
+            {/* Date Filters */}
+            <div className="flex-[0.25] space-y-1">
+              <Label className="text-sm">Start Date</Label>
+              <Input
+                type="date"
+                value={dateRange.startDate}
+                onChange={(e) => handleDateChange('startDate', e.target.value)}
+              />
+            </div>
+            <div className="flex-[0.25] space-y-1">
+              <Label className="text-sm">End Date</Label>
+              <Input
+                type="date"
+                value={dateRange.endDate}
+                onChange={(e) => handleDateChange('endDate', e.target.value)}
+              />
+            </div>
+
+            {/* Clear Filters Button */}
+            {(dateRange.startDate || dateRange.endDate) && (
+              <div className="flex-none">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={clearFilters}
+                  className="h-10 w-10"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Sort Controls */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Showing {sortedAssessments.length} assessments
         </div>
-        
-        {/* Filters Section */}
-        <Card>
-          <CardContent className="pt-6 pb-4">
-            <div className="flex gap-4 items-end">
-              {/* Search Bar - 50% */}
-              <div className="relative flex-[0.5] space-y-1">
-                <Label className="text-sm">Name</Label>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search by athlete name..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="pl-8"
-                  />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center gap-2"
+          onClick={handleSort}
+        >
+          Date
+          {getSortIcon()}
+        </Button>
+      </div>
+
+      {/* Assessment Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {sortedAssessments.map((assessment) => (
+          <Card 
+            key={assessment._id} 
+            className="hover:shadow-md transition-shadow duration-200"
+          >
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="font-semibold mb-1">
+                    {new Date(assessment.assessmentDate).toLocaleDateString()}
+                  </CardTitle>
+                  {!isAthleteView && assessment.athlete && (
+                    <p className="text-sm text-muted-foreground">
+                      Athlete: {assessment.athlete.name}
+                    </p>
+                  )}
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
+                  onClick={() => setDeleteId(assessment._id)}
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
               </div>
-
-              {/* Date Filters - 25% each */}
-              <div className="flex-[0.25] space-y-1">
-                <Label className="text-sm">Start Date</Label>
-                <Input
-                  type="date"
-                  value={dateRange.startDate}
-                  onChange={(e) => handleDateChange('startDate', e.target.value)}
-                />
-              </div>
-              <div className="flex-[0.25] space-y-1">
-                <Label className="text-sm">End Date</Label>
-                <Input
-                  type="date"
-                  value={dateRange.endDate}
-                  onChange={(e) => handleDateChange('endDate', e.target.value)}
-                />
-              </div>
-
-              {/* Clear Filters Button */}
-              {(searchTerm || dateRange.startDate || dateRange.endDate) && (
-                <div className="flex-none">
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    onClick={clearFilters}
-                    className="h-10 w-10"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+            </CardHeader>
+            <CardContent className="pt-0">
+              {assessment.performance && (
+                <div className="mb-4 space-y-1">
+                  {assessment.performance.verticalJump?.value && (
+                    <p className="text-sm">Vertical Jump: {assessment.performance.verticalJump.value}"</p>
+                  )}
+                  {assessment.performance.broadJump?.value && (
+                    <p className="text-sm">Broad Jump: {assessment.performance.broadJump.value}"</p>
+                  )}
+                  {assessment.performance.tenYardSprint?.value && (
+                    <p className="text-sm">10-Yard Sprint: {assessment.performance.tenYardSprint.value}s</p>
+                  )}
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Sort Controls */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {filteredAssessments.length} assessments
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => handleSort(SORT_FIELDS.NAME)}
-            >
-              Name
-              {getSortIcon(SORT_FIELDS.NAME)}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={() => handleSort(SORT_FIELDS.DATE)}
-            >
-              Date
-              {getSortIcon(SORT_FIELDS.DATE)}
-            </Button>
-          </div>
-        </div>
-
-        {/* Assessment Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredAssessments.map((assessment) => (
-            <Card 
-              key={assessment._id} 
-              className="hover:shadow-md transition-shadow duration-200"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="font-semibold mb-1">
-                      {assessment.name}
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(assessment.assessmentDate).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
-                    onClick={() => setDeleteId(assessment._id)}
-                  >
-                    <Trash2 className="h-5 w-5" />
+              <div className="flex gap-2">
+                <Link 
+                  to={isAthleteView 
+                    ? `/athletes/${athleteId}/assessments/${assessment._id}`
+                    : `/assessments/${assessment._id}`
+                  } 
+                  className="flex-1"
+                >
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View
                   </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex gap-2">
-                  <Link to={`/assessments/${assessment._id}`} className="flex-1">
-                    <Button variant="outline" className="w-full" size="sm">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
-                  </Link>
-                  <Link to={`/assessments/edit/${assessment._id}`} className="flex-1">
-                    <Button variant="outline" className="w-full" size="sm">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </Link>
+                <Link 
+                  to={isAthleteView
+                    ? `/athletes/${athleteId}/assessments/${assessment._id}/edit`
+                    : `/assessments/edit/${assessment._id}`
+                  } 
+                  className="flex-1"
+                >
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
@@ -326,8 +259,7 @@ const AssessmentList = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the
-              assessment record for {assessments.find(a => a._id === deleteId)?.name}.
+              This action cannot be undone. This will permanently delete this assessment.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -341,8 +273,6 @@ const AssessmentList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
-};
-
-export default AssessmentList;
+}
