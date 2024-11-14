@@ -28,7 +28,6 @@ import {
   AlertDialogCancel,
 } from "./ui/alert-dialog";
 
-// Change to default export
 export default function AssessmentForm() {
   const { id, athleteId } = useParams();
   const navigate = useNavigate();
@@ -42,6 +41,13 @@ export default function AssessmentForm() {
     queryKey: ['assessment', id],
     queryFn: () => assessmentApi.getAssessment(id),
     enabled: !!id
+  });
+
+  // Fetch athlete data for the header
+  const { data: athleteData, isLoading: isLoadingAthlete } = useQuery({
+    queryKey: ['athlete', athleteId],
+    queryFn: () => athleteApi.getAthlete(athleteId),
+    enabled: !!athleteId
   });
 
   // Fetch athletes for dropdown if not in athlete-specific context
@@ -146,91 +152,107 @@ export default function AssessmentForm() {
     }
   };
 
-  if (isLoadingAssessment || isLoadingAthletes) return <div>Loading...</div>;
+  if (isLoadingAssessment || isLoadingAthletes || isLoadingAthlete) return <div>Loading...</div>;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Athlete Selection - Only show if not in athlete-specific context */}
-            {!athleteId && (
+    <div className="space-y-6">
+      {/* Athlete Header */}
+      {athleteId && athleteData?.data && (
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">{athleteData.data.name}</h1>
+            <p className="text-muted-foreground">
+              Height: {athleteData.data.height?.value || 'N/A'}" | 
+              Weight: {athleteData.data.weight?.value || 'N/A'} lbs | 
+              Age: {athleteData.data.age || 'N/A'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Athlete Selection - Only show if not in athlete-specific context */}
+              {!athleteId && (
+                <div>
+                  <Label>Athlete *</Label>
+                  <Select 
+                    onValueChange={(value) => setValue('athlete', value)}
+                    defaultValue={watch('athlete')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an athlete" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {athletesData?.data.map((athlete) => (
+                        <SelectItem key={athlete._id} value={athlete._id}>
+                          {athlete.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.athlete && (
+                    <span className="text-red-500 text-sm">{errors.athlete.message}</span>
+                  )}
+                </div>
+              )}
+
               <div>
-                <Label>Athlete *</Label>
-                <Select 
-                  onValueChange={(value) => setValue('athlete', value)}
-                  defaultValue={watch('athlete')}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an athlete" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {athletesData?.data.map((athlete) => (
-                      <SelectItem key={athlete._id} value={athlete._id}>
-                        {athlete.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.athlete && (
-                  <span className="text-red-500 text-sm">{errors.athlete.message}</span>
+                <Label>Assessment Date *</Label>
+                <Input 
+                  type="date" 
+                  {...register("assessmentDate", { required: "Assessment date is required" })}
+                />
+                {errors.assessmentDate && (
+                  <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
                 )}
               </div>
-            )}
-
-            <div>
-              <Label>Assessment Date *</Label>
-              <Input 
-                type="date" 
-                {...register("assessmentDate", { required: "Assessment date is required" })}
-              />
-              {errors.assessmentDate && (
-                <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
-              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Movement Screen */}
-      <MovementScreen register={register} />
+        {/* Movement Screen */}
+        <MovementScreen register={register} />
 
-      {/* Performance Measurements */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Performance Measurements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PerformanceMeasurements 
-            register={register} 
-            watch={watch} 
-            setValue={setValue}
-          />
-        </CardContent>
-      </Card>
+        {/* Performance Measurements */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Measurements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PerformanceMeasurements 
+              register={register} 
+              watch={watch} 
+              setValue={setValue}
+            />
+          </CardContent>
+        </Card>
 
-      {/* General Comments */}
-      <Card>
-        <CardHeader>
-          <CardTitle>General Comments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <textarea 
-            {...register("generalComments")}
-            className="min-h-[200px] w-full rounded-md border p-2"
-            placeholder="Enter any additional observations or notes..."
-          />
-        </CardContent>
-      </Card>
+        {/* General Comments */}
+        <Card>
+          <CardHeader>
+            <CardTitle>General Comments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <textarea 
+              {...register("generalComments")}
+              className="min-h-[200px] w-full rounded-md border p-2"
+              placeholder="Enter any additional observations or notes..."
+            />
+          </CardContent>
+        </Card>
 
-      {/* Submit Button */}
-      <Button type="submit" className="w-full">
-        {id ? 'Update' : 'Submit'} Assessment
-      </Button>
+        {/* Submit Button */}
+        <Button type="submit" className="w-full">
+          {id ? 'Update' : 'Submit'} Assessment
+        </Button>
+      </form>
 
       {/* Missing Fields Dialog */}
       <AlertDialog open={showMissingFields} onOpenChange={setShowMissingFields}>
@@ -265,6 +287,6 @@ export default function AssessmentForm() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </form>
+    </div>
   );
 }

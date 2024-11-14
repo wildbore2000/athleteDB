@@ -57,7 +57,7 @@ const MovementScreen = ({ register }) => {
             <SelectValue placeholder="--" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">--</SelectItem>
+            <SelectItem value="none">--</SelectItem>
             <SelectItem value="pass">Pass</SelectItem>
             <SelectItem value="fail">Fail</SelectItem>
           </SelectContent>

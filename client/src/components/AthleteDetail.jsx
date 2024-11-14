@@ -23,7 +23,7 @@ export const AthleteDetail = () => {
           <Link to={`/athletes/${id}/edit`}>
             <Button variant="outline">Edit Athlete</Button>
           </Link>
-          <Link to={`/athletes/${id}/assessment/new`}>
+          <Link to={`/athletes/${id}/assessments/new`}>
             <Button>New Assessment</Button>
           </Link>
         </div>

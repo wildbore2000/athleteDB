@@ -1,6 +1,6 @@
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\components.json
+// Content from: C:\MyPrograms\athleteDB\client\components.json
 
 {
     "$schema": "https://ui.shadcn.com/schema.json",
@@ -18,7 +18,7 @@
     }
   }
 
-// Content from: C:\MyPrograms\AthleteDB\client\package.json
+// Content from: C:\MyPrograms\athleteDB\client\package.json
 
 {
   "name": "client",
@@ -79,7 +79,7 @@
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\postcss.config.js
+// Content from: C:\MyPrograms\athleteDB\client\postcss.config.js
 
 module.exports = {
   plugins: {
@@ -89,7 +89,7 @@ module.exports = {
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\public\index.html
+// Content from: C:\MyPrograms\athleteDB\client\public\index.html
 
 <!DOCTYPE html>
 <html lang="en">
@@ -136,7 +136,7 @@ module.exports = {
 </html>
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\public\manifest.json
+// Content from: C:\MyPrograms\athleteDB\client\public\manifest.json
 
 {
   "short_name": "React App",
@@ -165,7 +165,7 @@ module.exports = {
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\App.js
+// Content from: C:\MyPrograms\athleteDB\client\src\App.js
 
 // src/App.js
 import React from 'react';
@@ -245,7 +245,7 @@ function App() {
 
 export default App;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\App.test.js
+// Content from: C:\MyPrograms\athleteDB\client\src\App.test.js
 
 import { render, screen } from '@testing-library/react';
 import App from './App';
@@ -257,7 +257,7 @@ test('renders learn react link', () => {
 });
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\Analytics.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\Analytics.jsx
 
 // src/components/Analytics.jsx
 import React from 'react';
@@ -308,7 +308,7 @@ export const Analytics = () => {
   );
 };
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentDetail.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentDetail.jsx
 
 // src/components/AssessmentDetail.jsx
 import React, { useState } from 'react';
@@ -591,7 +591,7 @@ export default function AssessmentDetail() {
   );
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentForm.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentForm.jsx
 
 // src/components/AssessmentForm.jsx
 import React, { useState, useEffect } from 'react';
@@ -864,7 +864,7 @@ export default function AssessmentForm() {
   );
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentList.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentList.jsx
 
 // src/components/AssessmentList.jsx
 import React, { useState } from 'react';
@@ -1145,7 +1145,7 @@ export default function AssessmentList() {
   );
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteDetail.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteDetail.jsx
 
 
 // components/AthleteDetail.jsx
@@ -1219,7 +1219,7 @@ export const AthleteDetail = () => {
   );
 };
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteForm.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteForm.jsx
 
 // components/AthleteForm.jsx
 import React from 'react';
@@ -1306,7 +1306,7 @@ export const AthleteForm = () => {
 };
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\AthleteList.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteList.jsx
 
 // components/AthleteList.jsx
 import React, { useState } from 'react';
@@ -1385,7 +1385,7 @@ export const AthleteList = () => {
 
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ComparisonChart.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ComparisonChart.jsx
 
 // src/components/ComparisonChart.jsx
 import React, { useState } from 'react';
@@ -1481,7 +1481,7 @@ export const ComparisonChart = ({ limit = 10 }) => {
   );
 };
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\constants.js
+// Content from: C:\MyPrograms\athleteDB\client\src\components\constants.js
 
 // src/components/constants.js
 export const METRICS = {
@@ -1509,7 +1509,7 @@ export const METRICS = {
     DESC: 'desc'
   };
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\Dashboard.js
+// Content from: C:\MyPrograms\athleteDB\client\src\components\Dashboard.js
 
 // src/components/Dashboard.js
 import React from 'react';
@@ -1768,7 +1768,7 @@ const Dashboard = () => {
 
 export default Dashboard;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\FeetInchesInput.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\FeetInchesInput.jsx
 
 import React from 'react';
 import { Input } from './ui/input';
@@ -1852,7 +1852,7 @@ const FeetInchesInput = ({
 
 export default FeetInchesInput;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\Layout.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\Layout.jsx
 
 // src/components/Layout.jsx
 import React, { useState } from 'react';
@@ -1990,7 +1990,7 @@ const Layout = ({ children }) => {
 
 export default Layout;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\MovementScreen.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\MovementScreen.jsx
 
 // src/components/MovementScreen.jsx
 import React from 'react';
@@ -2111,7 +2111,7 @@ const MovementScreen = ({ register }) => {
 
 export default MovementScreen;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\PerformanceInput.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\PerformanceInput.jsx
 
 import React, { useState } from 'react';
 import { Input } from './ui/input';
@@ -2189,7 +2189,7 @@ const PerformanceInput = ({
 
 export default PerformanceInput;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\PerformanceMeasurements.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\PerformanceMeasurements.jsx
 
 // src/components/PerformanceMeasurements.jsx
 import React, { useEffect } from 'react';
@@ -2313,7 +2313,7 @@ const PerformanceMeasurements = ({ register, watch, setValue }) => {
 
 export default PerformanceMeasurements;
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\TrendsChart.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\TrendsChart.jsx
 
 // src/components/TrendsChart.jsx
 import React, { useState } from 'react';
@@ -2405,7 +2405,7 @@ export const TrendsChart = ({ metric: initialMetric = 'verticalJump', timeframe:
   );
 };
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\alert-dialog.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\alert-dialog.jsx
 
 // src/components/ui/alert-dialog.jsx
 import * as React from "react"
@@ -2492,7 +2492,7 @@ export {
   AlertDialogCancel,
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\button.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\button.jsx
 
 import * as React from "react"
 import { cn } from "../../lib/utils"
@@ -2512,7 +2512,7 @@ const Button = React.forwardRef(({ className, ...props }, ref) => {
 
 export { Button }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\card.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\card.jsx
 
 // src/components/ui/card.jsx
 import * as React from "react"
@@ -2550,7 +2550,7 @@ const CardTitle = React.forwardRef(({ className, children, ...props }, ref) => (
 
 export { Card, CardHeader, CardContent, CardTitle }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\input.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\input.jsx
 
 import * as React from "react"
 import { cn } from "../../lib/utils"
@@ -2571,7 +2571,7 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
 
 export { Input }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\label.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\label.jsx
 
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
@@ -2590,7 +2590,7 @@ const Label = React.forwardRef(({ className, ...props }, ref) => (
 
 export { Label }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\select.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\select.jsx
 
 // src/components/ui/select.jsx
 import * as React from "react"
@@ -2695,7 +2695,7 @@ export {
   SelectSeparator,
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\sheet.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\sheet.jsx
 
 // src/components/ui/sheet.jsx
 import * as React from "react"
@@ -2812,7 +2812,7 @@ export {
   SheetDescription,
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\textarea.jsx
+// Content from: C:\MyPrograms\athleteDB\client\src\components\ui\textarea.jsx
 
 import * as React from "react"
 import { cn } from "../../lib/utils"
@@ -2832,7 +2832,7 @@ const Textarea = React.forwardRef(({ className, ...props }, ref) => {
 
 export { Textarea }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\hooks\index.js
+// Content from: C:\MyPrograms\athleteDB\client\src\hooks\index.js
 
 // src/hooks/index.js
 export {
@@ -2855,7 +2855,7 @@ export {
     useComparativeStats
   } from './useData';
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\hooks\useData.js
+// Content from: C:\MyPrograms\athleteDB\client\src\hooks\useData.js
 
 // src/hooks/useData.js
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -3030,7 +3030,7 @@ export function useComparativeStats(athleteIds, metrics) {
   });
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\index.css
+// Content from: C:\MyPrograms\athleteDB\client\src\index.css
 
 @tailwind base;
 @tailwind components;
@@ -3109,7 +3109,7 @@ export function useComparativeStats(athleteIds, metrics) {
   }
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\index.js
+// Content from: C:\MyPrograms\athleteDB\client\src\index.js
 
 // src/index.js
 import React from 'react';
@@ -3135,7 +3135,7 @@ root.render(
 reportWebVitals();
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\lib\queryClient.js
+// Content from: C:\MyPrograms\athleteDB\client\src\lib\queryClient.js
 
 // src/lib/queryClient.js
 import { QueryClient } from '@tanstack/react-query';
@@ -3150,7 +3150,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\lib\utils.js
+// Content from: C:\MyPrograms\athleteDB\client\src\lib\utils.js
 
 // src/lib/utils.js
 import { clsx } from "clsx"
@@ -3160,7 +3160,7 @@ export function cn(...inputs) {
   return twMerge(clsx(inputs))
 }
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\reportWebVitals.js
+// Content from: C:\MyPrograms\athleteDB\client\src\reportWebVitals.js
 
 const reportWebVitals = onPerfEntry => {
   if (onPerfEntry && onPerfEntry instanceof Function) {
@@ -3177,7 +3177,7 @@ const reportWebVitals = onPerfEntry => {
 export default reportWebVitals;
 
 
-// Content from: C:\MyPrograms\AthleteDB\client\src\services\api.js
+// Content from: C:\MyPrograms\athleteDB\client\src\services\api.js
 
 // src/services/api.js
 import axios from 'axios';
@@ -3317,7 +3317,7 @@ export const analyticsApi = {
 
 export default api;
 
-// Content from: C:\MyPrograms\AthleteDB\client\tailwind.config.js
+// Content from: C:\MyPrograms\athleteDB\client\tailwind.config.js
 
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
@@ -3379,7 +3379,7 @@ module.exports = {
   plugins: [],
 }
 
-// Content from: C:\MyPrograms\AthleteDB\combineAllFiles.js
+// Content from: C:\MyPrograms\athleteDB\combineAllFiles.js
 
 const fs = require('fs');
 const path = require('path');
@@ -3484,7 +3484,7 @@ concatenateFiles(allFiles, combinedFile);
 console.log(`Directory structure has been written to ${structureFile}`);
 
 
-// Content from: C:\MyPrograms\AthleteDB\liststructure.js
+// Content from: C:\MyPrograms\athleteDB\liststructure.js
 
 const fs = require('fs');
 const path = require('path');
@@ -3540,7 +3540,7 @@ listDirectory('.');
 console.log(`Directory structure has been written to ${outputFile}`);
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\config\db.js
+// Content from: C:\MyPrograms\athleteDB\server\config\db.js
 
 // server/config/db.js
 const mongoose = require('mongoose');
@@ -3561,7 +3561,7 @@ const connectDB = async () => {
 module.exports = connectDB;
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\controllers\assessmentController.js
+// Content from: C:\MyPrograms\athleteDB\server\controllers\assessmentController.js
 
 // controllers/assessmentController.js
 const { Assessment } = require('../models/Assessment');
@@ -3659,7 +3659,7 @@ exports.deleteAssessment = asyncHandler(async (req, res) => {
   });
 });
 
-// Content from: C:\MyPrograms\AthleteDB\server\controllers\athleteController.js
+// Content from: C:\MyPrograms\athleteDB\server\controllers\athleteController.js
 
 // server/controllers/athleteController.js
 const { Athlete } = require('../models/Athlete');
@@ -3829,7 +3829,7 @@ exports.getAthleteTrends = asyncHandler(async (req, res) => {
   });
 });
 
-// Content from: C:\MyPrograms\AthleteDB\server\controllers\statisticsController.js
+// Content from: C:\MyPrograms\athleteDB\server\controllers\statisticsController.js
 
 // server/controllers/statisticsController.js
 const { Assessment } = require('../models/Assessment');
@@ -3971,7 +3971,7 @@ exports.getComparativeStats = asyncHandler(async (req, res) => {
   });
 });
 
-// Content from: C:\MyPrograms\AthleteDB\server\models\Assessment.js
+// Content from: C:\MyPrograms\athleteDB\server\models\Assessment.js
 
 // models/Assessment.js
 const mongoose = require('mongoose');
@@ -4052,7 +4052,7 @@ const Assessment = mongoose.model('Assessment', assessmentSchema);
   
 module.exports = { Assessment };
 
-// Content from: C:\MyPrograms\AthleteDB\server\models\Athlete.js
+// Content from: C:\MyPrograms\athleteDB\server\models\Athlete.js
 
 // models/Athlete.js
 const mongoose = require('mongoose');
@@ -4119,7 +4119,7 @@ const Athlete = mongoose.model('Athlete', athleteSchema);
 
 module.exports = { Athlete };
 
-// Content from: C:\MyPrograms\AthleteDB\server\package.json
+// Content from: C:\MyPrograms\athleteDB\server\package.json
 
 {
   "name": "server",
@@ -4147,7 +4147,7 @@ module.exports = { Athlete };
 }
 
 
-// Content from: C:\MyPrograms\AthleteDB\server\routes\assessmentRoutes.js
+// Content from: C:\MyPrograms\athleteDB\server\routes\assessmentRoutes.js
 
 // server/routes/assessmentRoutes.js
 const express = require('express');
@@ -4172,7 +4172,7 @@ router.route('/:id')
 
 module.exports = router;
 
-// Content from: C:\MyPrograms\AthleteDB\server\routes\athleteRoutes.js
+// Content from: C:\MyPrograms\athleteDB\server\routes\athleteRoutes.js
 
 
 // server/routes/athleteRoutes.js
@@ -4204,7 +4204,7 @@ router.get('/:id/trends', getAthleteTrends);
 
 module.exports = router;
 
-// Content from: C:\MyPrograms\AthleteDB\server\routes\index.js
+// Content from: C:\MyPrograms\athleteDB\server\routes\index.js
 
 // server/routes/index.js
 const express = require('express');
@@ -4219,7 +4219,7 @@ router.use('/assessments', assessmentRoutes);
 
 module.exports = router;
 
-// Content from: C:\MyPrograms\AthleteDB\server\server.js
+// Content from: C:\MyPrograms\athleteDB\server\server.js
 
 // server/server.js
 require('dotenv').config();

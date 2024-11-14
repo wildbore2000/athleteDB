@@ -56,7 +56,6 @@
 |-- liststructure.js
 |-- README.md
 |-- server
-    |-- .env
     |-- config
         |-- db.js
     |-- controllers
