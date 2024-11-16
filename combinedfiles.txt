@@ -49,6 +49,7 @@
     "recharts": "^2.13.3",
     "tailwind-merge": "^2.5.4",
     "tailwindcss": "^3.4.1",
+    "use-debounce": "^10.0.4",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -117,7 +118,7 @@ module.exports = {
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>BFP Assessments</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -139,8 +140,8 @@ module.exports = {
 // Content from: C:\MyPrograms\athleteDB\client\public\manifest.json
 
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "BFP Assessments",
+  "name": "BFP Athlete Assessments",
   "icons": [
     {
       "src": "favicon.ico",
@@ -167,10 +168,11 @@ module.exports = {
 
 // Content from: C:\MyPrograms\athleteDB\client\src\App.js
 
-// src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Layout from './components/Layout';
+import { Button } from './components/ui/button';
+import { Link } from 'react-router-dom';
 
 // Pages and Components
 import Dashboard from './components/Dashboard';
@@ -180,65 +182,75 @@ import { AthleteDetail } from './components/AthleteDetail';
 import AssessmentList from './components/AssessmentList';
 import AssessmentForm from './components/AssessmentForm';
 import AssessmentDetail from './components/AssessmentDetail';
-import { Analytics } from './components/Analytics';
-import { ComparisonChart } from './components/ComparisonChart';
-import { TrendsChart } from './components/TrendsChart';
 
-// Analytics Layout Component
-const AnalyticsLayout = ({ children }) => (
-  <div className="space-y-6">
-    <div className="flex justify-between items-center">
-      <h1 className="text-2xl font-bold">Analytics</h1>
-    </div>
-    {children}
-  </div>
+// Default Mobile Buttons Component for Dashboard
+const DashboardMobileButtons = () => (
+  <>
+    <Link to="/athletes/new" className="flex-1">
+      <Button variant="outline" className="w-full">Add Athlete</Button>
+    </Link>
+    <Link to="/assessments/new" className="flex-1">
+      <Button className="w-full">New Assessment</Button>
+    </Link>
+  </>
 );
+
+// Attach MobileButtons to Dashboard if it doesn't exist
+if (!Dashboard.MobileButtons) {
+  Dashboard.MobileButtons = DashboardMobileButtons;
+}
+
+const AppContent = () => {
+  const location = useLocation();
+  
+  const getMobileButtons = () => {
+    // Get the first matching route segment
+    const path = location.pathname.split('/')[1];
+    
+    // Return appropriate buttons based on route
+    switch (path) {
+      case '':
+        return <DashboardMobileButtons />;
+      case 'athletes':
+        return AthleteList.MobileButtons ? <AthleteList.MobileButtons /> : null;
+      case 'assessments':
+        return AssessmentList.MobileButtons ? <AssessmentList.MobileButtons /> : null;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Layout mobileButtons={getMobileButtons()}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        
+        {/* Athletes Routes */}
+        <Route path="/athletes" element={<AthleteList />} />
+        <Route path="/athletes/new" element={<AthleteForm />} />
+        <Route path="/athletes/:id" element={<AthleteDetail />} />
+        <Route path="/athletes/:id/edit" element={<AthleteForm />} />
+
+        {/* Assessment Routes */}
+        <Route path="/assessments" element={<AssessmentList />} />
+        <Route path="/assessments/new" element={<AssessmentForm />} />
+        <Route path="/assessments/:id" element={<AssessmentDetail />} />
+        <Route path="/assessments/:id/edit" element={<AssessmentForm />} />
+        <Route path="/athletes/:athleteId/assessments" element={<AssessmentList />} />
+        <Route path="/athletes/:athleteId/assessments/new" element={<AssessmentForm />} />
+        <Route path="/athletes/:athleteId/assessments/:id" element={<AssessmentDetail />} />
+        <Route path="/athletes/:athleteId/assessments/:id/edit" element={<AssessmentForm />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  );
+};
 
 function App() {
   return (
     <Router>
-      <Layout>
-        <Routes>
-          {/* Dashboard */}
-          <Route path="/" element={<Dashboard />} />
-
-          {/* Athletes Routes */}
-          <Route path="/athletes" element={<AthleteList />} />
-          <Route path="/athletes/new" element={<AthleteForm />} />
-          <Route path="/athletes/:id" element={<AthleteDetail />} />
-          <Route path="/athletes/:id/edit" element={<AthleteForm />} />
-
-          {/* Assessment Routes */}
-          <Route path="/assessments" element={<AssessmentList />} />
-          <Route path="/assessments/new" element={<AssessmentForm />} />
-          <Route path="/assessments/:id" element={<AssessmentDetail />} />
-          <Route path="/assessments/:id/edit" element={<AssessmentForm />} />
-          <Route path="/athletes/:athleteId/assessments" element={<AssessmentList />} />
-          <Route path="/athletes/:athleteId/assessments/new" element={<AssessmentForm />} />
-          <Route path="/athletes/:athleteId/assessments/:id" element={<AssessmentDetail />} />
-          <Route path="/athletes/:athleteId/assessments/:id/edit" element={<AssessmentForm />} />
-
-          {/* Analytics Routes */}
-          <Route path="/analytics" element={
-            <AnalyticsLayout>
-              <Analytics />
-            </AnalyticsLayout>
-          } />
-          <Route path="/analytics/comparison" element={
-            <AnalyticsLayout>
-              <ComparisonChart />
-            </AnalyticsLayout>
-          } />
-          <Route path="/analytics/trends" element={
-            <AnalyticsLayout>
-              <TrendsChart />
-            </AnalyticsLayout>
-          } />
-
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </Layout>
+      <AppContent />
     </Router>
   );
 }
@@ -623,7 +635,6 @@ import {
   AlertDialogCancel,
 } from "./ui/alert-dialog";
 
-// Change to default export
 export default function AssessmentForm() {
   const { id, athleteId } = useParams();
   const navigate = useNavigate();
@@ -637,6 +648,13 @@ export default function AssessmentForm() {
     queryKey: ['assessment', id],
     queryFn: () => assessmentApi.getAssessment(id),
     enabled: !!id
+  });
+
+  // Fetch athlete data for the header
+  const { data: athleteData, isLoading: isLoadingAthlete } = useQuery({
+    queryKey: ['athlete', athleteId],
+    queryFn: () => athleteApi.getAthlete(athleteId),
+    enabled: !!athleteId
   });
 
   // Fetch athletes for dropdown if not in athlete-specific context
@@ -741,91 +759,107 @@ export default function AssessmentForm() {
     }
   };
 
-  if (isLoadingAssessment || isLoadingAthletes) return <div>Loading...</div>;
+  if (isLoadingAssessment || isLoadingAthletes || isLoadingAthlete) return <div>Loading...</div>;
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Athlete Selection - Only show if not in athlete-specific context */}
-            {!athleteId && (
+    <div className="space-y-6">
+      {/* Athlete Header */}
+      {athleteId && athleteData?.data && (
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold">{athleteData.data.name}</h1>
+            <p className="text-muted-foreground">
+              Height: {athleteData.data.height?.value || 'N/A'}" | 
+              Weight: {athleteData.data.weight?.value || 'N/A'} lbs | 
+              Age: {athleteData.data.age || 'N/A'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Athlete Selection - Only show if not in athlete-specific context */}
+              {!athleteId && (
+                <div>
+                  <Label>Athlete *</Label>
+                  <Select 
+                    onValueChange={(value) => setValue('athlete', value)}
+                    defaultValue={watch('athlete')}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an athlete" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {athletesData?.data.map((athlete) => (
+                        <SelectItem key={athlete._id} value={athlete._id}>
+                          {athlete.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.athlete && (
+                    <span className="text-red-500 text-sm">{errors.athlete.message}</span>
+                  )}
+                </div>
+              )}
+
               <div>
-                <Label>Athlete *</Label>
-                <Select 
-                  onValueChange={(value) => setValue('athlete', value)}
-                  defaultValue={watch('athlete')}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an athlete" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {athletesData?.data.map((athlete) => (
-                      <SelectItem key={athlete._id} value={athlete._id}>
-                        {athlete.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.athlete && (
-                  <span className="text-red-500 text-sm">{errors.athlete.message}</span>
+                <Label>Assessment Date *</Label>
+                <Input 
+                  type="date" 
+                  {...register("assessmentDate", { required: "Assessment date is required" })}
+                />
+                {errors.assessmentDate && (
+                  <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
                 )}
               </div>
-            )}
-
-            <div>
-              <Label>Assessment Date *</Label>
-              <Input 
-                type="date" 
-                {...register("assessmentDate", { required: "Assessment date is required" })}
-              />
-              {errors.assessmentDate && (
-                <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
-              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Movement Screen */}
-      <MovementScreen register={register} />
+        {/* Movement Screen */}
+        <MovementScreen register={register} />
 
-      {/* Performance Measurements */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Performance Measurements</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PerformanceMeasurements 
-            register={register} 
-            watch={watch} 
-            setValue={setValue}
-          />
-        </CardContent>
-      </Card>
+        {/* Performance Measurements */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Measurements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PerformanceMeasurements 
+              register={register} 
+              watch={watch} 
+              setValue={setValue}
+            />
+          </CardContent>
+        </Card>
 
-      {/* General Comments */}
-      <Card>
-        <CardHeader>
-          <CardTitle>General Comments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <textarea 
-            {...register("generalComments")}
-            className="min-h-[200px] w-full rounded-md border p-2"
-            placeholder="Enter any additional observations or notes..."
-          />
-        </CardContent>
-      </Card>
+        {/* General Comments */}
+        <Card>
+          <CardHeader>
+            <CardTitle>General Comments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <textarea 
+              {...register("generalComments")}
+              className="min-h-[200px] w-full rounded-md border p-2"
+              placeholder="Enter any additional observations or notes..."
+            />
+          </CardContent>
+        </Card>
 
-      {/* Submit Button */}
-      <Button type="submit" className="w-full">
-        {id ? 'Update' : 'Submit'} Assessment
-      </Button>
+        {/* Submit Button */}
+        <Button type="submit" className="w-full">
+          {id ? 'Update' : 'Submit'} Assessment
+        </Button>
+      </form>
 
       {/* Missing Fields Dialog */}
       <AlertDialog open={showMissingFields} onOpenChange={setShowMissingFields}>
@@ -860,13 +894,12 @@ export default function AssessmentForm() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </form>
+    </div>
   );
 }
 
 // Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentList.jsx
 
-// src/components/AssessmentList.jsx
 import React, { useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { useAthlete } from '../hooks';
@@ -876,13 +909,13 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { SORT_FIELDS, SORT_DIRECTIONS } from './constants';
 import { 
   Search, 
   X, 
   Trash2, 
   Eye, 
   Edit,
-  ArrowUpDown,
   ChevronUp,
   ChevronDown 
 } from 'lucide-react';
@@ -897,22 +930,22 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 
-const SORT_FIELDS = {
-  DATE: 'assessmentDate'
-};
+const MobileButtons = ({ athleteId }) => (
+  <Link 
+    to={athleteId ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"} 
+    className="flex-1"
+  >
+    <Button className="w-full">Add New Assessment</Button>
+  </Link>
+);
 
-const SORT_DIRECTIONS = {
-  ASC: 'asc',
-  DESC: 'desc'
-};
-
-// Rename the component to match the export
 export default function AssessmentList() {
   const { athleteId } = useParams();
   const location = useLocation();
   const isAthleteView = Boolean(athleteId);
   
   // State
+  const [searchTerm, setSearchTerm] = useState('');
   const [deleteId, setDeleteId] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: '',
@@ -923,23 +956,13 @@ export default function AssessmentList() {
     direction: SORT_DIRECTIONS.DESC
   });
 
-  // Queries
+  // Queries with staleTime
   const { data: athleteData } = useAthlete(athleteId);
   const { data: assessmentsData, isLoading } = useQuery({
-    queryKey: ['assessments', { athleteId, ...dateRange }],
-    queryFn: () => assessmentApi.getAssessments({ 
-      athleteId,
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate
-    })
+    queryKey: ['assessments', { athleteId }],
+    queryFn: () => assessmentApi.getAssessments({ athleteId }),
+    staleTime: Infinity,
   });
-
-  const handleDateChange = (field, value) => {
-    setDateRange(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handleSort = () => {
     setSortConfig(current => ({
@@ -950,14 +973,9 @@ export default function AssessmentList() {
     }));
   };
 
-  const getSortIcon = () => {
-    return sortConfig.direction === SORT_DIRECTIONS.ASC 
-      ? <ChevronUp className="h-4 w-4" />
-      : <ChevronDown className="h-4 w-4" />;
-  };
-
   const clearFilters = () => {
     setDateRange({ startDate: '', endDate: '' });
+    setSearchTerm('');
   };
 
   const handleDelete = async () => {
@@ -969,15 +987,39 @@ export default function AssessmentList() {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  // Filter assessments based on search term and date range
+  const filteredAssessments = React.useMemo(() => {
+    if (!assessmentsData?.data) return [];
+    
+    return assessmentsData.data.filter(assessment => {
+      // Search filter
+      const searchMatch = !searchTerm || 
+        (assessment.athlete?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         assessment.generalComments?.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const sortedAssessments = [...(assessmentsData?.data || [])].sort((a, b) => {
-    const dateA = new Date(a.assessmentDate);
-    const dateB = new Date(b.assessmentDate);
-    return sortConfig.direction === SORT_DIRECTIONS.ASC 
-      ? dateA - dateB 
-      : dateB - dateA;
-  });
+      // Date range filter
+      const assessmentDate = new Date(assessment.assessmentDate);
+      const startDateMatch = !dateRange.startDate || 
+        assessmentDate >= new Date(dateRange.startDate);
+      const endDateMatch = !dateRange.endDate || 
+        assessmentDate <= new Date(dateRange.endDate);
+
+      return searchMatch && startDateMatch && endDateMatch;
+    });
+  }, [assessmentsData?.data, searchTerm, dateRange]);
+
+  // Sort filtered assessments
+  const sortedAssessments = React.useMemo(() => {
+    return [...filteredAssessments].sort((a, b) => {
+      const dateA = new Date(a.assessmentDate);
+      const dateB = new Date(b.assessmentDate);
+      return sortConfig.direction === SORT_DIRECTIONS.ASC 
+        ? dateA - dateB 
+        : dateB - dateA;
+    });
+  }, [filteredAssessments, sortConfig.direction]);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-6">
@@ -988,22 +1030,40 @@ export default function AssessmentList() {
             ? `Assessments for ${athleteData?.data.name}`
             : 'All Assessments'}
         </h1>
-        <Link to={isAthleteView ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"}>
-          <Button>Add New Assessment</Button>
-        </Link>
+        <div className="hidden md:block">
+          <Link to={isAthleteView ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"}>
+            <Button>Add New Assessment</Button>
+          </Link>
+        </div>
       </div>
       
       {/* Filters Section */}
       <Card>
         <CardContent className="pt-6 pb-4">
           <div className="flex gap-4 items-end">
+            {/* Search Input */}
+            <div className="flex-1 space-y-1">
+              <Label className="text-sm">Search Athlete or Comments</Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Search assessments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 pl-8 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            </div>
+
             {/* Date Filters */}
             <div className="flex-[0.25] space-y-1">
               <Label className="text-sm">Start Date</Label>
               <Input
                 type="date"
                 value={dateRange.startDate}
-                onChange={(e) => handleDateChange('startDate', e.target.value)}
+                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
               />
             </div>
             <div className="flex-[0.25] space-y-1">
@@ -1011,12 +1071,12 @@ export default function AssessmentList() {
               <Input
                 type="date"
                 value={dateRange.endDate}
-                onChange={(e) => handleDateChange('endDate', e.target.value)}
+                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
               />
             </div>
 
             {/* Clear Filters Button */}
-            {(dateRange.startDate || dateRange.endDate) && (
+            {(dateRange.startDate || dateRange.endDate || searchTerm) && (
               <div className="flex-none">
                 <Button 
                   variant="ghost" 
@@ -1043,8 +1103,7 @@ export default function AssessmentList() {
           className="flex items-center gap-2"
           onClick={handleSort}
         >
-          Date
-          {getSortIcon()}
+          Date {sortConfig.direction === SORT_DIRECTIONS.ASC ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -1107,7 +1166,7 @@ export default function AssessmentList() {
                 <Link 
                   to={isAthleteView
                     ? `/athletes/${athleteId}/assessments/${assessment._id}/edit`
-                    : `/assessments/edit/${assessment._id}`
+                    : `/assessments/${assessment._id}/edit`
                   } 
                   className="flex-1"
                 >
@@ -1145,15 +1204,37 @@ export default function AssessmentList() {
   );
 }
 
+AssessmentList.MobileButtons = MobileButtons;
+
 // Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteDetail.jsx
 
-
-// components/AthleteDetail.jsx
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAthlete } from '../hooks';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import { format } from 'date-fns';
+
+const MobileButtons = ({ id }) => (
+  <>
+    <Link to={`/athletes/${id}/edit`} className="flex-1">
+      <Button variant="outline" className="w-full">Edit Athlete</Button>
+    </Link>
+    <Link to={`/athletes/${id}/assessments/new`} className="flex-1">
+      <Button className="w-full">New Assessment</Button>
+    </Link>
+  </>
+);
 
 export const AthleteDetail = () => {
   const { id } = useParams();
@@ -1164,50 +1245,171 @@ export const AthleteDetail = () => {
 
   const athlete = data.data;
 
+  const formatAssessmentData = (assessments) => {
+    return assessments?.map(assessment => ({
+      date: format(new Date(assessment.assessmentDate), 'MM/dd/yyyy'),
+      verticalJump: assessment.performance?.verticalJump?.value,
+      broadJump: assessment.performance?.broadJump?.value,
+      sprint: assessment.performance?.tenYardSprint?.value,
+      ohmbThrow: assessment.performance?.ohmbThrow?.value,
+      mbShotput: assessment.performance?.mbShotput?.value,
+      mbLeadArm: assessment.performance?.mbLeadArm?.value
+    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+  };
+
+  const chartData = formatAssessmentData(athlete.assessments);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{athlete.name}</h1>
-        <div className="space-x-2">
+        <div>
+          <h1 className="text-2xl font-bold">{athlete.name}</h1>
+          <p className="text-muted-foreground">
+            Age: {athlete.age || 'N/A'} | 
+            Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'} | 
+            Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}
+          </p>
+        </div>
+        <div className="hidden md:flex md:space-x-2">
           <Link to={`/athletes/${id}/edit`}>
             <Button variant="outline">Edit Athlete</Button>
           </Link>
-          <Link to={`/athletes/${id}/assessment/new`}>
+          <Link to={`/athletes/${id}/assessments/new`}>
             <Button>New Assessment</Button>
           </Link>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Performance Charts */}
+      <div className="grid gap-6">
+        {/* Jump Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Athlete Information</CardTitle>
+            <CardTitle>Jump Performance</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p>Age: {athlete.age || 'N/A'}</p>
-            <p>Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'}</p>
-            <p>Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}</p>
-            <p>Date of Birth: {athlete.dateOfBirth ? new Date(athlete.dateOfBirth).toLocaleDateString() : 'N/A'}</p>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis yAxisId="left" />
+                  <YAxis yAxisId="right" orientation="right" />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone" 
+                    dataKey="verticalJump" 
+                    name="Vertical Jump (in)"
+                    stroke="#2563eb" 
+                  />
+                  <Line 
+                    yAxisId="right"
+                    type="monotone" 
+                    dataKey="broadJump" 
+                    name="Broad Jump (in)"
+                    stroke="#16a34a" 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           </CardContent>
         </Card>
 
+        {/* Medicine Ball Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Assessment History</CardTitle>
+            <CardTitle>Medicine Ball Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="ohmbThrow" 
+                    name="OH MB Throw (in)"
+                    stroke="#9333ea" 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="mbShotput" 
+                    name="MB Shotput (in)"
+                    stroke="#ea580c" 
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="mbLeadArm" 
+                    name="MB Lead Arm (in)"
+                    stroke="#0d9488" 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sprint Performance */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sprint Performance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="sprint" 
+                    name="10-Yard Sprint (s)"
+                    stroke="#dc2626" 
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Assessments */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Assessments</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {athlete.assessments?.map((assessment) => (
+              {athlete.assessments?.slice(0, 5).map((assessment) => (
                 <Link 
                   key={assessment._id} 
                   to={`/athletes/${id}/assessments/${assessment._id}`}
-                  className="block"
                 >
                   <div className="p-4 border rounded-lg hover:bg-gray-50">
-                    <p className="font-medium">
-                      {new Date(assessment.assessmentDate).toLocaleDateString()}
-                    </p>
-                    {/* Add more assessment summary info as needed */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">
+                          {format(new Date(assessment.assessmentDate), 'MMMM d, yyyy')}
+                        </p>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {assessment.performance?.verticalJump?.value && 
+                            `VJ: ${assessment.performance.verticalJump.value}" | `}
+                          {assessment.performance?.broadJump?.value && 
+                            `BJ: ${assessment.performance.broadJump.value}" | `}
+                          {assessment.performance?.tenYardSprint?.value && 
+                            `Sprint: ${assessment.performance.tenYardSprint.value}s`}
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm">View Details →</Button>
+                    </div>
                   </div>
                 </Link>
               ))}
@@ -1218,6 +1420,8 @@ export const AthleteDetail = () => {
     </div>
   );
 };
+
+AthleteDetail.MobileButtons = MobileButtons;
 
 // Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteForm.jsx
 
@@ -1308,37 +1512,43 @@ export const AthleteForm = () => {
 
 // Content from: C:\MyPrograms\athleteDB\client\src\components\AthleteList.jsx
 
-// components/AthleteList.jsx
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAthletes } from '../hooks';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { Search, X } from 'lucide-react';
+
+const MobileButtons = () => (
+  <Link to="/athletes/new" className="flex-1">
+    <Button className="w-full">Add New Athlete</Button>
+  </Link>
+);
 
 export const AthleteList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { data, isLoading } = useAthletes({ search: searchTerm });
 
-  if (isLoading) return <div>Loading...</div>;
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Athletes</h1>
-        <Link to="/athletes/new">
-          <Button>Add New Athlete</Button>
-        </Link>
+        <div className="hidden md:block">
+          <Link to="/athletes/new">
+            <Button>Add New Athlete</Button>
+          </Link>
+        </div>
       </div>
 
       <div className="relative">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
+        <input
+          type="text"
+          autoComplete="off"
           placeholder="Search athletes..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-8"
+          className="flex h-10 w-full rounded-md border border-input bg-background px-3 pl-8 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
         {searchTerm && (
           <Button
@@ -1353,7 +1563,7 @@ export const AthleteList = () => {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {data?.data.map((athlete) => (
+        {!isLoading && data?.data.map((athlete) => (
           <Link key={athlete._id} to={`/athletes/${athlete._id}`}>
             <Card className="hover:shadow-md transition-shadow duration-200">
               <CardHeader>
@@ -1383,7 +1593,7 @@ export const AthleteList = () => {
   );
 };
 
-
+AthleteList.MobileButtons = MobileButtons;
 
 // Content from: C:\MyPrograms\athleteDB\client\src\components\ComparisonChart.jsx
 
@@ -1511,29 +1721,15 @@ export const METRICS = {
 
 // Content from: C:\MyPrograms\athleteDB\client\src\components\Dashboard.js
 
-// src/components/Dashboard.js
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { athleteApi, assessmentApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar
-} from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
 
 const Dashboard = () => {
-  // Fetch athletes and recent assessments
   const { data: athletesData } = useQuery({
     queryKey: ['athletes'],
     queryFn: () => athleteApi.getAthletes({ limit: 100 })
@@ -1568,166 +1764,66 @@ const Dashboard = () => {
     };
   };
 
-  const preparePerformanceData = () => {
-    if (!assessmentsData?.data) return [];
-
-    // Group assessments by athlete
-    const athleteData = {};
-    assessmentsData.data.forEach(assessment => {
-      if (!athleteData[assessment.athlete?._id]) {
-        athleteData[assessment.athlete?._id] = {
-          name: assessment.athlete?.name,
-          assessments: []
-        };
-      }
-      
-      athleteData[assessment.athlete?._id].assessments.push({
-        date: new Date(assessment.assessmentDate).toLocaleDateString(),
-        verticalJump: assessment.performance?.verticalJump?.value || 0,
-        broadJump: assessment.performance?.broadJump?.value || 0,
-        sprint: assessment.performance?.tenYardSprint?.value || 0
-      });
-    });
-
-    return Object.values(athleteData);
-  };
-
-  const prepareRecentActivity = () => {
-    if (!assessmentsData?.data) return [];
-    
-    return assessmentsData.data
-      .slice(0, 5)
-      .map(assessment => ({
-        athleteName: assessment.athlete?.name,
-        date: assessment.assessmentDate,
-        id: assessment._id,
-        athleteId: assessment.athlete?._id
-      }));
-  };
-
   const stats = calculateStats();
-  const performanceData = preparePerformanceData();
-  const recentActivity = prepareRecentActivity();
+  const recentActivity = assessmentsData?.data.slice(0, 5).map(assessment => ({
+    athleteName: assessment.athlete?.name,
+    date: assessment.assessmentDate,
+    id: assessment._id,
+    athleteId: assessment.athlete?._id
+  })) || [];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="space-x-2">
+        <div className="hidden md:flex md:space-x-2">
           <Link to="/athletes/new">
             <Button variant="outline">Add Athlete</Button>
           </Link>
-          <Link to="/assessments/add">
+          <Link to="/assessments/new">
             <Button>New Assessment</Button>
           </Link>
         </div>
       </div>
 
-      {/* Summary Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Athletes
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Athletes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.totalAthletes || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.totalAthletes || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Assessments
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.totalAssessments || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.totalAssessments || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Assessments This Month
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Assessments This Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.assessmentsThisMonth || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.assessmentsThisMonth || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Avg Assessments per Athlete
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Assessments per Athlete</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.avgAssessmentsPerAthlete || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.avgAssessmentsPerAthlete || 0}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Performance Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Vertical Jump Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData?.[0]?.assessments || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="verticalJump" 
-                  stroke="#2563eb" 
-                  name="Vertical Jump (inches)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sprint Time Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData?.[0]?.assessments || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="sprint" 
-                  stroke="#dc2626" 
-                  name="10-Yard Sprint (seconds)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Assessments</CardTitle>
@@ -1765,6 +1861,18 @@ const Dashboard = () => {
     </div>
   );
 };
+
+// Define MobileButtons component
+Dashboard.MobileButtons = () => (
+  <>
+    <Link to="/athletes/new" className="flex-1">
+      <Button variant="outline" className="w-full">Add Athlete</Button>
+    </Link>
+    <Link to="/assessments/new" className="flex-1">
+      <Button className="w-full">New Assessment</Button>
+    </Link>
+  </>
+);
 
 export default Dashboard;
 
@@ -1854,7 +1962,6 @@ export default FeetInchesInput;
 
 // Content from: C:\MyPrograms\athleteDB\client\src\components\Layout.jsx
 
-// src/components/Layout.jsx
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from "../lib/utils";
@@ -1863,9 +1970,7 @@ import {
   Users,
   ClipboardList,
   Menu,
-  X,
-  BarChart2,
-  Settings
+  X
 } from 'lucide-react';
 import { Button } from './ui/button';
 import {
@@ -1890,11 +1995,6 @@ const mainNav = [
     name: 'Assessments',
     href: '/assessments',
     icon: ClipboardList
-  },
-  {
-    name: 'Analytics',
-    href: '/analytics',
-    icon: BarChart2
   }
 ];
 
@@ -1946,41 +2046,72 @@ const Sidebar = ({ className }) => {
 };
 
 const MobileNav = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
+          className="px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
         >
           <Menu className="h-6 w-6" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="pr-0">
-        <Sidebar />
+      <SheetContent side="left" className="w-64 p-0">
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b px-4 py-2">
+            <h2 className="text-lg font-semibold">Menu</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          <nav className="flex-1 overflow-y-auto">
+            {mainNav.map((item) => (
+              <div key={item.href} className="px-2 py-1">
+                <NavLink 
+                  item={item} 
+                  isMobile 
+                  onClick={() => setIsOpen(false)}
+                />
+              </div>
+            ))}
+          </nav>
+        </div>
       </SheetContent>
     </Sheet>
   );
 };
 
-const Layout = ({ children }) => {
+const Layout = ({ children, mobileButtons }) => {
   return (
     <div className="flex min-h-screen">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-[80] bg-background">
+      <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 z-[80] bg-background border-r">
         <Sidebar />
       </div>
 
-      {/* Mobile Navigation */}
-      <div className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 md:hidden">
-        <MobileNav />
-        <h1 className="font-semibold">AthleteDB</h1>
+      {/* Mobile Header */}
+      <div className="fixed top-0 left-0 right-0 z-40 flex flex-col border-b bg-background px-4 py-2 md:hidden">
+        <div className="flex items-center gap-4">
+          <MobileNav />
+          <h1 className="font-semibold">AthleteDB</h1>
+        </div>
+        {mobileButtons && (
+          <div className="flex gap-2 mt-2 mb-1">
+            {mobileButtons}
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
       <div className="flex-1 md:pl-64">
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 md:p-8 mt-24 md:mt-0">
           {children}
         </main>
       </div>
@@ -2051,7 +2182,7 @@ const MovementScreen = ({ register }) => {
             <SelectValue placeholder="--" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">--</SelectItem>
+            <SelectItem value="none">--</SelectItem>
             <SelectItem value="pass">Pass</SelectItem>
             <SelectItem value="fail">Fail</SelectItem>
           </SelectContent>
@@ -3182,7 +3313,9 @@ export default reportWebVitals;
 // src/services/api.js
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Update API_URL line
+const hostname = window.location.hostname; // Gets local hostname
+const API_URL = process.env.REACT_APP_API_URL || `http://${hostname}:5000/api`;
 
 // Create axios instance with default config
 const api = axios.create({
@@ -3971,6 +4104,200 @@ exports.getComparativeStats = asyncHandler(async (req, res) => {
   });
 });
 
+// Content from: C:\MyPrograms\athleteDB\server\importSampleData.js
+
+// importSampleData.js
+require('dotenv').config();
+const mongoose = require('mongoose');
+const { Athlete } = require('./models/Athlete');
+const { Assessment } = require('./models/Assessment');
+
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+const randomFloat = (min, max, decimals = 2) => +(Math.random() * (max - min) + min).toFixed(decimals);
+
+const generateRandomDate = (start, end) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+};
+
+const generateAthleteData = () => {
+  const maleFirstNames = ['James', 'William', 'Michael', 'David', 'Robert', 'John', 'Thomas', 'Daniel', 'Christopher', 'Matthew'];
+  const femaleFirstNames = ['Emma', 'Olivia', 'Ava', 'Isabella', 'Sophia', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+  
+  const isMale = Math.random() < 0.5;
+  const firstName = isMale ? 
+    maleFirstNames[randomInt(0, maleFirstNames.length - 1)] : 
+    femaleFirstNames[randomInt(0, femaleFirstNames.length - 1)];
+  const lastName = lastNames[randomInt(0, lastNames.length - 1)];
+  
+  const heightInches = isMale ? randomInt(68, 76) : randomInt(62, 70);
+  const weightLbs = isMale ? 
+    randomInt(160, 200) : 
+    randomInt(130, 170);
+
+  // Generate birthdate for high school athlete (14-18 years old)
+  const now = new Date();
+  const minAge = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+  const maxAge = new Date(now.getFullYear() - 14, now.getMonth(), now.getDate());
+  const birthDate = generateRandomDate(minAge, maxAge);
+
+  return {
+    name: `${firstName} ${lastName}`,
+    dateOfBirth: birthDate.toISOString().split('T')[0],
+    height: {
+      value: heightInches,
+      unit: "in"
+    },
+    weight: {
+      value: weightLbs,
+      unit: "lbs"
+    }
+  };
+};
+
+const generateAssessment = (date) => {
+  const generateScore = () => randomInt(1, 3);
+  const generateAttempts = (baseValue, range) => {
+    const attempts = [baseValue];
+    attempts.push(baseValue + randomFloat(-range, range));
+    attempts.push(baseValue + randomFloat(-range, range));
+    return attempts.map(v => +v.toFixed(2));
+  };
+
+  const verticalJump = randomFloat(24, 32, 1);
+  const broadJump = randomInt(85, 105);
+  const sprint = randomFloat(1.55, 1.85, 2);
+  const ohmbThrow = randomInt(170, 200);
+  const mbShotput = randomInt(190, 225);
+  const mbLeadArm = randomInt(155, 185);
+
+  return {
+    assessmentDate: date.toISOString().split('T')[0],
+    movementScreen: {
+      overheadSquat: {
+        scoreLeft: generateScore(),
+        scoreRight: generateScore(),
+        comments: ["Good form", "Needs work on depth", "Watch knee alignment", "Maintain neutral spine"][randomInt(0, 3)]
+      },
+      hurdleStep: {
+        scoreLeft: generateScore(),
+        scoreRight: generateScore(),
+        comments: ["Stable throughout", "Hip rotation needs work", "Good hip mobility", "Watch knee stability"][randomInt(0, 3)]
+      },
+      inlineLunge: {
+        scoreLeft: generateScore(),
+        scoreRight: generateScore(),
+        comments: ["Balanced movement", "Work on stability", "Good control", "Improve hip mobility"][randomInt(0, 3)]
+      },
+      apleyScratch: {
+        scoreLeft: Math.random() < 0.8 ? "pass" : "fail",
+        scoreRight: Math.random() < 0.8 ? "pass" : "fail",
+        comments: ["Full ROM", "Limited upper reach", "Good mobility", "Restricted movement pattern"][randomInt(0, 3)]
+      }
+    },
+    performance: {
+      verticalJump: {
+        value: verticalJump,
+        attempts: generateAttempts(verticalJump, 1),
+        unit: "in"
+      },
+      broadJump: {
+        value: broadJump,
+        attempts: generateAttempts(broadJump, 2),
+        unit: "in"
+      },
+      tenYardSprint: {
+        value: sprint,
+        attempts: generateAttempts(sprint, 0.03)
+      },
+      ohmbThrow: {
+        value: ohmbThrow,
+        attempts: generateAttempts(ohmbThrow, 6),
+        unit: "in"
+      },
+      mbShotput: {
+        value: mbShotput,
+        attempts: generateAttempts(mbShotput, 5),
+        unit: "in"
+      },
+      mbLeadArm: {
+        value: mbLeadArm,
+        attempts: generateAttempts(mbLeadArm, 4),
+        unit: "in"
+      }
+    },
+    generalComments: [
+      "Strong overall performance. Focus on mobility work.",
+      "Good progress shown. Continue with current program.",
+      "Shows potential. Need to address movement patterns.",
+      "Consistent improvement across all areas.",
+      "Some asymmetries noted. Implement corrective exercises."
+    ][randomInt(0, 4)]
+  };
+};
+
+const sampleData = {
+  athletes: Array(100).fill(null).map(() => generateAthleteData()),
+  assessments: []
+};
+
+// Generate 1-4 assessments for each athlete
+sampleData.athletes.forEach((athlete, index) => {
+  const numAssessments = randomInt(1, 4);
+  const now = new Date();
+  const threeYearsAgo = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+  
+  const assessmentDates = Array(numAssessments)
+    .fill(null)
+    .map(() => generateRandomDate(threeYearsAgo, now))
+    .sort((a, b) => a - b);
+
+  const athleteAssessments = assessmentDates.map(date => generateAssessment(date));
+  sampleData.assessments.push(...athleteAssessments);
+});
+
+async function importData() {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB');
+    console.log('Connected to MongoDB');
+
+    // Clear existing data
+    await Athlete.deleteMany({});
+    await Assessment.deleteMany({});
+    console.log('Cleared existing data');
+
+    // Import athletes
+    const athletes = await Athlete.insertMany(sampleData.athletes);
+    console.log('Imported athletes');
+
+    // Create assessments for each athlete
+    const assessmentPromises = athletes.map(async (athlete, index) => {
+      const athleteAssessments = sampleData.assessments.slice(
+        index * 4,
+        index * 4 + 4
+      ).filter(a => a); // Remove undefined entries
+      
+      const assessmentData = athleteAssessments.map(assessment => ({
+        ...assessment,
+        athlete: athlete._id
+      }));
+      
+      return Assessment.create(assessmentData);
+    });
+
+    await Promise.all(assessmentPromises);
+    console.log('Imported assessments');
+
+    console.log('Sample data import complete');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error importing data:', error);
+    process.exit(1);
+  }
+}
+
+importData();
+
 // Content from: C:\MyPrograms\athleteDB\server\models\Assessment.js
 
 // models/Assessment.js
@@ -4228,6 +4555,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const routes = require('./routes');
+const os = require('os');
+const hostname = os.hostname();
 
 const app = express();
 
@@ -4249,6 +4578,11 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.use(cors({
+  origin: `http://${hostname}:3000`,
+  credentials: true
+}));
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB')
   .then(() => console.log('MongoDB Connected'))
@@ -4256,6 +4590,6 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://${hostname}:${PORT}`);
 });

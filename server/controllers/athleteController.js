@@ -17,6 +17,10 @@ exports.getAthletes = asyncHandler(async (req, res) => {
 
   const total = await Athlete.countDocuments(query);
   const athletes = await Athlete.find(query)
+    .populate({
+      path: 'assessments',
+      select: '_id' // Only populate IDs to keep response size small
+    })
     .sort({ name: 1 })
     .limit(limit)
     .skip(skipIndex);

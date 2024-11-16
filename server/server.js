@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const morgan = require('morgan');
 const routes = require('./routes');
+const os = require('os');
+const hostname = os.hostname();
 
 const app = express();
 
@@ -26,6 +28,11 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.use(cors({
+  origin: `http://${hostname}:3000`,
+  credentials: true
+}));
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB')
   .then(() => console.log('MongoDB Connected'))
@@ -33,6 +40,6 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running at http://${hostname}:${PORT}`);
 });

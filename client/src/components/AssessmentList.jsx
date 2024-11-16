@@ -1,4 +1,3 @@
-// src/components/AssessmentList.jsx
 import React, { useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { useAthlete } from '../hooks';
@@ -8,13 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
+import { SORT_FIELDS, SORT_DIRECTIONS } from './constants';
 import { 
   Search, 
   X, 
   Trash2, 
   Eye, 
   Edit,
-  ArrowUpDown,
   ChevronUp,
   ChevronDown 
 } from 'lucide-react';
@@ -29,22 +28,22 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 
-const SORT_FIELDS = {
-  DATE: 'assessmentDate'
-};
+const MobileButtons = ({ athleteId }) => (
+  <Link 
+    to={athleteId ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"} 
+    className="flex-1"
+  >
+    <Button className="w-full">Add New Assessment</Button>
+  </Link>
+);
 
-const SORT_DIRECTIONS = {
-  ASC: 'asc',
-  DESC: 'desc'
-};
-
-// Rename the component to match the export
 export default function AssessmentList() {
   const { athleteId } = useParams();
   const location = useLocation();
   const isAthleteView = Boolean(athleteId);
   
   // State
+  const [searchTerm, setSearchTerm] = useState('');
   const [deleteId, setDeleteId] = useState(null);
   const [dateRange, setDateRange] = useState({
     startDate: '',
@@ -55,23 +54,13 @@ export default function AssessmentList() {
     direction: SORT_DIRECTIONS.DESC
   });
 
-  // Queries
+  // Queries with staleTime
   const { data: athleteData } = useAthlete(athleteId);
   const { data: assessmentsData, isLoading } = useQuery({
-    queryKey: ['assessments', { athleteId, ...dateRange }],
-    queryFn: () => assessmentApi.getAssessments({ 
-      athleteId,
-      startDate: dateRange.startDate,
-      endDate: dateRange.endDate
-    })
+    queryKey: ['assessments', { athleteId }],
+    queryFn: () => assessmentApi.getAssessments({ athleteId }),
+    staleTime: Infinity,
   });
-
-  const handleDateChange = (field, value) => {
-    setDateRange(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handleSort = () => {
     setSortConfig(current => ({
@@ -82,14 +71,9 @@ export default function AssessmentList() {
     }));
   };
 
-  const getSortIcon = () => {
-    return sortConfig.direction === SORT_DIRECTIONS.ASC 
-      ? <ChevronUp className="h-4 w-4" />
-      : <ChevronDown className="h-4 w-4" />;
-  };
-
   const clearFilters = () => {
     setDateRange({ startDate: '', endDate: '' });
+    setSearchTerm('');
   };
 
   const handleDelete = async () => {
@@ -101,15 +85,39 @@ export default function AssessmentList() {
     }
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  // Filter assessments based on search term and date range
+  const filteredAssessments = React.useMemo(() => {
+    if (!assessmentsData?.data) return [];
+    
+    return assessmentsData.data.filter(assessment => {
+      // Search filter
+      const searchMatch = !searchTerm || 
+        (assessment.athlete?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         assessment.generalComments?.toLowerCase().includes(searchTerm.toLowerCase()));
 
-  const sortedAssessments = [...(assessmentsData?.data || [])].sort((a, b) => {
-    const dateA = new Date(a.assessmentDate);
-    const dateB = new Date(b.assessmentDate);
-    return sortConfig.direction === SORT_DIRECTIONS.ASC 
-      ? dateA - dateB 
-      : dateB - dateA;
-  });
+      // Date range filter
+      const assessmentDate = new Date(assessment.assessmentDate);
+      const startDateMatch = !dateRange.startDate || 
+        assessmentDate >= new Date(dateRange.startDate);
+      const endDateMatch = !dateRange.endDate || 
+        assessmentDate <= new Date(dateRange.endDate);
+
+      return searchMatch && startDateMatch && endDateMatch;
+    });
+  }, [assessmentsData?.data, searchTerm, dateRange]);
+
+  // Sort filtered assessments
+  const sortedAssessments = React.useMemo(() => {
+    return [...filteredAssessments].sort((a, b) => {
+      const dateA = new Date(a.assessmentDate);
+      const dateB = new Date(b.assessmentDate);
+      return sortConfig.direction === SORT_DIRECTIONS.ASC 
+        ? dateA - dateB 
+        : dateB - dateA;
+    });
+  }, [filteredAssessments, sortConfig.direction]);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-6">
@@ -120,22 +128,40 @@ export default function AssessmentList() {
             ? `Assessments for ${athleteData?.data.name}`
             : 'All Assessments'}
         </h1>
-        <Link to={isAthleteView ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"}>
-          <Button>Add New Assessment</Button>
-        </Link>
+        <div className="hidden md:block">
+          <Link to={isAthleteView ? `/athletes/${athleteId}/assessments/new` : "/assessments/new"}>
+            <Button>Add New Assessment</Button>
+          </Link>
+        </div>
       </div>
       
       {/* Filters Section */}
       <Card>
         <CardContent className="pt-6 pb-4">
           <div className="flex gap-4 items-end">
+            {/* Search Input */}
+            <div className="flex-1 space-y-1">
+              <Label className="text-sm">Search Athlete or Comments</Label>
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Search assessments..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 pl-8 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
+            </div>
+
             {/* Date Filters */}
             <div className="flex-[0.25] space-y-1">
               <Label className="text-sm">Start Date</Label>
               <Input
                 type="date"
                 value={dateRange.startDate}
-                onChange={(e) => handleDateChange('startDate', e.target.value)}
+                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
               />
             </div>
             <div className="flex-[0.25] space-y-1">
@@ -143,12 +169,12 @@ export default function AssessmentList() {
               <Input
                 type="date"
                 value={dateRange.endDate}
-                onChange={(e) => handleDateChange('endDate', e.target.value)}
+                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
               />
             </div>
 
             {/* Clear Filters Button */}
-            {(dateRange.startDate || dateRange.endDate) && (
+            {(dateRange.startDate || dateRange.endDate || searchTerm) && (
               <div className="flex-none">
                 <Button 
                   variant="ghost" 
@@ -175,8 +201,7 @@ export default function AssessmentList() {
           className="flex items-center gap-2"
           onClick={handleSort}
         >
-          Date
-          {getSortIcon()}
+          Date {sortConfig.direction === SORT_DIRECTIONS.ASC ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -239,7 +264,7 @@ export default function AssessmentList() {
                 <Link 
                   to={isAthleteView
                     ? `/athletes/${athleteId}/assessments/${assessment._id}/edit`
-                    : `/assessments/edit/${assessment._id}`
+                    : `/assessments/${assessment._id}/edit`
                   } 
                   className="flex-1"
                 >
@@ -276,3 +301,5 @@ export default function AssessmentList() {
     </div>
   );
 }
+
+AssessmentList.MobileButtons = MobileButtons;

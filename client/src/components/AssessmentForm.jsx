@@ -1,5 +1,6 @@
 // src/components/AssessmentForm.jsx
 import React, { useState, useEffect } from 'react';
+import { Search, X } from 'lucide-react'; 
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -35,6 +36,7 @@ export default function AssessmentForm() {
   const [showMissingFields, setShowMissingFields] = useState(false);
   const [missingFields, setMissingFields] = useState([]);
   const [submissionData, setSubmissionData] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Fetch assessment data if editing
   const { data: assessmentData, isLoading: isLoadingAssessment } = useQuery({
@@ -53,7 +55,7 @@ export default function AssessmentForm() {
   // Fetch athletes for dropdown if not in athlete-specific context
   const { data: athletesData, isLoading: isLoadingAthletes } = useQuery({
     queryKey: ['athletes'],
-    queryFn: () => athleteApi.getAthletes(),
+    queryFn: () => athleteApi.getAthletes({ limit: 1000 }), // Increase limit to get all athletes
     enabled: !athleteId // Only fetch if not in athlete-specific context
   });
 
@@ -189,12 +191,57 @@ export default function AssessmentForm() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select an athlete" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {athletesData?.data.map((athlete) => (
-                        <SelectItem key={athlete._id} value={athlete._id}>
-                          {athlete.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[500px]">
+                      <div className="sticky top-0 bg-background p-2 z-10 border-b">
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input
+                            placeholder="Search athletes..."
+                            className="h-8 pl-8"
+                            onKeyDown={(e) => e.stopPropagation()}
+                            value={searchTerm}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSearchTerm(e.target.value);
+                            }}
+                          />
+                          {searchTerm && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1 h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSearchTerm('');
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="max-h-[300px] overflow-y-auto">
+                        {athletesData?.data
+                          .filter(athlete => 
+                            athlete.name.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map((athlete) => (
+                          <SelectItem 
+                            key={athlete._id} 
+                            value={athlete._id}
+                          >
+                            <div className="flex flex-col">
+                              <span>{athlete.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {athlete.age ? `Age: ${athlete.age}` : ''} 
+                                {athlete.height?.value ? ` | Height: ${athlete.height.value}"` : ''}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </div>
                     </SelectContent>
                   </Select>
                   {errors.athlete && (

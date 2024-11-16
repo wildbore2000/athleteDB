@@ -4,162 +4,149 @@ const mongoose = require('mongoose');
 const { Athlete } = require('./models/Athlete');
 const { Assessment } = require('./models/Assessment');
 
-const sampleData = {
-  "athletes": [
-    {
-      "name": "John Smith",
-      "dateOfBirth": "2005-03-15",
-      "height": {
-        "value": 72,
-        "unit": "in"
-      },
-      "weight": {
-        "value": 180,
-        "unit": "lbs"
-      }
-    },
-    {
-      "name": "Sarah Johnson",
-      "dateOfBirth": "2006-07-22",
-      "height": {
-        "value": 66,
-        "unit": "in"
-      },
-      "weight": {
-        "value": 145,
-        "unit": "lbs"
-      }
-    },
-    {
-      "name": "Michael Chen",
-      "dateOfBirth": "2005-11-30",
-      "height": {
-        "value": 70,
-        "unit": "in"
-      },
-      "weight": {
-        "value": 165,
-        "unit": "lbs"
-      }
-    }
-  ],
-  "assessments": [
-    {
-      "assessmentDate": "2024-02-15",
-      "movementScreen": {
-        "overheadSquat": {
-          "scoreLeft": 2,
-          "scoreRight": 2,
-          "comments": "Slight forward lean"
-        },
-        "hurdleStep": {
-          "scoreLeft": 3,
-          "scoreRight": 2,
-          "comments": "Right side compensation noted"
-        },
-        "inlineLunge": {
-          "scoreLeft": 2,
-          "scoreRight": 2,
-          "comments": "Good control"
-        },
-        "apleyScratch": {
-          "scoreLeft": "pass",
-          "scoreRight": "pass",
-          "comments": "Full ROM both sides"
-        }
-      },
-      "performance": {
-        "verticalJump": {
-          "value": 28.5,
-          "attempts": [27.5, 28.5, 28.0],
-          "unit": "in"
-        },
-        "broadJump": {
-          "value": 96,
-          "attempts": [94, 96, 95],
-          "unit": "in"
-        },
-        "tenYardSprint": {
-          "value": 1.65,
-          "attempts": [1.68, 1.65, 1.67]
-        },
-        "ohmbThrow": {
-          "value": 186,
-          "attempts": [180, 186, 184],
-          "unit": "in"
-        },
-        "mbShotput": {
-          "value": 210,
-          "attempts": [205, 210, 208],
-          "unit": "in"
-        },
-        "mbLeadArm": {
-          "value": 168,
-          "attempts": [165, 168, 166],
-          "unit": "in"
-        }
-      },
-      "generalComments": "Good overall performance. Focus on right hip mobility."
-    },
-    {
-      "assessmentDate": "2024-03-01",
-      "movementScreen": {
-        "overheadSquat": {
-          "scoreLeft": 3,
-          "scoreRight": 3,
-          "comments": "Improved form"
-        },
-        "hurdleStep": {
-          "scoreLeft": 3,
-          "scoreRight": 2,
-          "comments": "Right side still showing compensation"
-        },
-        "inlineLunge": {
-          "scoreLeft": 2,
-          "scoreRight": 3,
-          "comments": "Better control on right side"
-        },
-        "apleyScratch": {
-          "scoreLeft": "pass",
-          "scoreRight": "pass",
-          "comments": "Maintained good ROM"
-        }
-      },
-      "performance": {
-        "verticalJump": {
-          "value": 29.5,
-          "attempts": [29.0, 29.5, 29.0],
-          "unit": "in"
-        },
-        "broadJump": {
-          "value": 98,
-          "attempts": [96, 98, 97],
-          "unit": "in"
-        },
-        "tenYardSprint": {
-          "value": 1.62,
-          "attempts": [1.64, 1.62, 1.63]
-        },
-        "ohmbThrow": {
-          "value": 192,
-          "attempts": [188, 192, 190],
-          "unit": "in"
-        },
-        "mbShotput": {
-          "value": 215,
-          "attempts": [212, 215, 213],
-          "unit": "in"
-        },
-        "mbLeadArm": {
-          "value": 172,
-          "attempts": [170, 172, 171],
-          "unit": "in"
-        }
-      },
-      "generalComments": "Shows improvement in most areas. Continue mobility work for right hip."
-    }
-  ]
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+const randomFloat = (min, max, decimals = 2) => +(Math.random() * (max - min) + min).toFixed(decimals);
+
+const generateRandomDate = (start, end) => {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 };
+
+const generateAthleteData = () => {
+  const maleFirstNames = ['James', 'William', 'Michael', 'David', 'Robert', 'John', 'Thomas', 'Daniel', 'Christopher', 'Matthew'];
+  const femaleFirstNames = ['Emma', 'Olivia', 'Ava', 'Isabella', 'Sophia', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
+  
+  const isMale = Math.random() < 0.5;
+  const firstName = isMale ? 
+    maleFirstNames[randomInt(0, maleFirstNames.length - 1)] : 
+    femaleFirstNames[randomInt(0, femaleFirstNames.length - 1)];
+  const lastName = lastNames[randomInt(0, lastNames.length - 1)];
+  
+  const heightInches = isMale ? randomInt(68, 76) : randomInt(62, 70);
+  const weightLbs = isMale ? 
+    randomInt(160, 200) : 
+    randomInt(130, 170);
+
+  // Generate birthdate for high school athlete (14-18 years old)
+  const now = new Date();
+  const minAge = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
+  const maxAge = new Date(now.getFullYear() - 14, now.getMonth(), now.getDate());
+  const birthDate = generateRandomDate(minAge, maxAge);
+
+  return {
+    name: `${firstName} ${lastName}`,
+    dateOfBirth: birthDate.toISOString().split('T')[0],
+    height: {
+      value: heightInches,
+      unit: "in"
+    },
+    weight: {
+      value: weightLbs,
+      unit: "lbs"
+    }
+  };
+};
+
+const generateAssessment = (date) => {
+  const generateScore = () => randomInt(1, 3);
+  const generateAttempts = (baseValue, range) => {
+    const attempts = [baseValue];
+    attempts.push(baseValue + randomFloat(-range, range));
+    attempts.push(baseValue + randomFloat(-range, range));
+    return attempts.map(v => +v.toFixed(2));
+  };
+
+  const verticalJump = randomFloat(24, 32, 1);
+  const broadJump = randomInt(85, 105);
+  const sprint = randomFloat(1.55, 1.85, 2);
+  const ohmbThrow = randomInt(170, 200);
+  const mbShotput = randomInt(190, 225);
+  const mbLeadArm = randomInt(155, 185);
+
+  return {
+    assessmentDate: date.toISOString().split('T')[0],
+    movementScreen: {
+      overheadSquat: {
+        scoreLeft: generateScore(),
+        scoreRight: generateScore(),
+        comments: ["Good form", "Needs work on depth", "Watch knee alignment", "Maintain neutral spine"][randomInt(0, 3)]
+      },
+      hurdleStep: {
+        scoreLeft: generateScore(),
+        scoreRight: generateScore(),
+        comments: ["Stable throughout", "Hip rotation needs work", "Good hip mobility", "Watch knee stability"][randomInt(0, 3)]
+      },
+      inlineLunge: {
+        scoreLeft: generateScore(),
+        scoreRight: generateScore(),
+        comments: ["Balanced movement", "Work on stability", "Good control", "Improve hip mobility"][randomInt(0, 3)]
+      },
+      apleyScratch: {
+        scoreLeft: Math.random() < 0.8 ? "pass" : "fail",
+        scoreRight: Math.random() < 0.8 ? "pass" : "fail",
+        comments: ["Full ROM", "Limited upper reach", "Good mobility", "Restricted movement pattern"][randomInt(0, 3)]
+      }
+    },
+    performance: {
+      verticalJump: {
+        value: verticalJump,
+        attempts: generateAttempts(verticalJump, 1),
+        unit: "in"
+      },
+      broadJump: {
+        value: broadJump,
+        attempts: generateAttempts(broadJump, 2),
+        unit: "in"
+      },
+      tenYardSprint: {
+        value: sprint,
+        attempts: generateAttempts(sprint, 0.03)
+      },
+      ohmbThrow: {
+        value: ohmbThrow,
+        attempts: generateAttempts(ohmbThrow, 6),
+        unit: "in"
+      },
+      mbShotput: {
+        value: mbShotput,
+        attempts: generateAttempts(mbShotput, 5),
+        unit: "in"
+      },
+      mbLeadArm: {
+        value: mbLeadArm,
+        attempts: generateAttempts(mbLeadArm, 4),
+        unit: "in"
+      }
+    },
+    generalComments: [
+      "Strong overall performance. Focus on mobility work.",
+      "Good progress shown. Continue with current program.",
+      "Shows potential. Need to address movement patterns.",
+      "Consistent improvement across all areas.",
+      "Some asymmetries noted. Implement corrective exercises."
+    ][randomInt(0, 4)]
+  };
+};
+
+const sampleData = {
+  athletes: Array(100).fill(null).map(() => generateAthleteData()),
+  assessments: []
+};
+
+// Generate 1-4 assessments for each athlete
+sampleData.athletes.forEach((athlete, index) => {
+  const numAssessments = randomInt(1, 4);
+  const now = new Date();
+  const threeYearsAgo = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
+  
+  const assessmentDates = Array(numAssessments)
+    .fill(null)
+    .map(() => generateRandomDate(threeYearsAgo, now))
+    .sort((a, b) => a - b);
+
+  const athleteAssessments = assessmentDates.map(date => generateAssessment(date));
+  sampleData.assessments.push(...athleteAssessments);
+});
 
 async function importData() {
   try {
@@ -177,11 +164,16 @@ async function importData() {
 
     // Create assessments for each athlete
     const assessmentPromises = athletes.map(async (athlete, index) => {
-      const assessmentData = sampleData.assessments.map(assessment => ({
+      const athleteAssessments = sampleData.assessments.slice(
+        index * 4,
+        index * 4 + 4
+      ).filter(a => a); // Remove undefined entries
+      
+      const assessmentData = athleteAssessments.map(assessment => ({
         ...assessment,
-        athlete: athlete._id,
-        assessmentDate: new Date(new Date(assessment.assessmentDate).setMonth(index)) // Offset dates for each athlete
+        athlete: athlete._id
       }));
+      
       return Assessment.create(assessmentData);
     });
 

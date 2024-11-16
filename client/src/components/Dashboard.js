@@ -1,26 +1,12 @@
-// src/components/Dashboard.js
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { athleteApi, assessmentApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Link } from 'react-router-dom';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  BarChart,
-  Bar
-} from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
 
 const Dashboard = () => {
-  // Fetch athletes and recent assessments
   const { data: athletesData } = useQuery({
     queryKey: ['athletes'],
     queryFn: () => athleteApi.getAthletes({ limit: 100 })
@@ -55,166 +41,66 @@ const Dashboard = () => {
     };
   };
 
-  const preparePerformanceData = () => {
-    if (!assessmentsData?.data) return [];
-
-    // Group assessments by athlete
-    const athleteData = {};
-    assessmentsData.data.forEach(assessment => {
-      if (!athleteData[assessment.athlete?._id]) {
-        athleteData[assessment.athlete?._id] = {
-          name: assessment.athlete?.name,
-          assessments: []
-        };
-      }
-      
-      athleteData[assessment.athlete?._id].assessments.push({
-        date: new Date(assessment.assessmentDate).toLocaleDateString(),
-        verticalJump: assessment.performance?.verticalJump?.value || 0,
-        broadJump: assessment.performance?.broadJump?.value || 0,
-        sprint: assessment.performance?.tenYardSprint?.value || 0
-      });
-    });
-
-    return Object.values(athleteData);
-  };
-
-  const prepareRecentActivity = () => {
-    if (!assessmentsData?.data) return [];
-    
-    return assessmentsData.data
-      .slice(0, 5)
-      .map(assessment => ({
-        athleteName: assessment.athlete?.name,
-        date: assessment.assessmentDate,
-        id: assessment._id,
-        athleteId: assessment.athlete?._id
-      }));
-  };
-
   const stats = calculateStats();
-  const performanceData = preparePerformanceData();
-  const recentActivity = prepareRecentActivity();
+  const recentActivity = assessmentsData?.data.slice(0, 5).map(assessment => ({
+    athleteName: assessment.athlete?.name,
+    date: assessment.assessmentDate,
+    id: assessment._id,
+    athleteId: assessment.athlete?._id
+  })) || [];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <div className="space-x-2">
+        <div className="hidden md:flex md:space-x-2">
           <Link to="/athletes/new">
             <Button variant="outline">Add Athlete</Button>
           </Link>
-          <Link to="/assessments/add">
+          <Link to="/assessments/new">
             <Button>New Assessment</Button>
           </Link>
         </div>
       </div>
 
-      {/* Summary Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Athletes
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Athletes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.totalAthletes || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.totalAthletes || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Assessments
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Assessments</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.totalAssessments || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.totalAssessments || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Assessments This Month
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Assessments This Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.assessmentsThisMonth || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.assessmentsThisMonth || 0}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Avg Assessments per Athlete
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Avg Assessments per Athlete</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats?.avgAssessmentsPerAthlete || 0}
-            </div>
+            <div className="text-2xl font-bold">{stats?.avgAssessmentsPerAthlete || 0}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Performance Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Vertical Jump Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData?.[0]?.assessments || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="verticalJump" 
-                  stroke="#2563eb" 
-                  name="Vertical Jump (inches)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Sprint Time Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={performanceData?.[0]?.assessments || []}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="sprint" 
-                  stroke="#dc2626" 
-                  name="10-Yard Sprint (seconds)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
       <Card>
         <CardHeader>
           <CardTitle>Recent Assessments</CardTitle>
@@ -252,5 +138,17 @@ const Dashboard = () => {
     </div>
   );
 };
+
+// Define MobileButtons component
+Dashboard.MobileButtons = () => (
+  <>
+    <Link to="/athletes/new" className="flex-1">
+      <Button variant="outline" className="w-full">Add Athlete</Button>
+    </Link>
+    <Link to="/assessments/new" className="flex-1">
+      <Button className="w-full">New Assessment</Button>
+    </Link>
+  </>
+);
 
 export default Dashboard;
