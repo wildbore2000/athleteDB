@@ -1,0 +1,77 @@
+{
+    "athletes": [
+      {
+        "name": "Chloe Vice",
+        "dateOfBirth": "2009-08-10",
+        "height": {
+          "value": 66.5,
+          "unit": "in"
+        },
+        "weight": {
+          "value": 165,
+          "unit": "lbs"
+        }
+      }
+    ],
+    "assessments": [
+      {
+        "athleteName": "Chloe Vice",
+        "assessmentDate": "2023-09-11",
+        "movementScreen": {
+          "overheadSquat": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Eversion"
+          },
+          "hurdleStep": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Hip Hike"
+          },
+          "inlineLunge": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Back Abduction"
+          },
+          "apleyScratch": {
+            "scoreLeft": "pass",
+            "scoreRight": "fail",
+            "comments": "Abduction"
+          }
+        },
+        "performance": {
+          "verticalJump": {
+            "value": 16,
+            "attempts": [14, 16, 15],
+            "unit": "in"
+          },
+          "broadJump": {
+            "value": 64,
+            "attempts": [64, 64, 64],
+            "unit": "in"
+          },
+          "tenYardSprint": {
+            "value": 1.99,
+            "attempts": [1.99, 2.04, 2.00]
+          },
+          "ohmbThrow": {
+            "value": 26,
+            "attempts": [25, 26, 26],
+            "unit": "in"
+          },
+          "mbShotput": {
+            "value": null,
+            "attempts": [],
+            "unit": "in"
+          },
+          "mbLeadArm": {
+            "value": null,
+            "attempts": [],
+            "unit": "in"
+          }
+        },
+        "generalComments": "Bench, DB Squat, Shoulder Press, Weighted Situp, Pull Up; Clean Jumps 3x3, Split Squats 3x6, Split Jumps 3x3, Pallof 3x10s"
+      }
+    ]
+  }
+  

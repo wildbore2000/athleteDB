@@ -1,0 +1,76 @@
+{
+  "athletes": [
+    {
+      "name": "Kiran Folk",
+      "dateOfBirth": "2008-06-15",
+      "height": {
+        "value": 68,
+        "unit": "in"
+      },
+      "weight": {
+        "value": 130,
+        "unit": "lbs"
+      }
+    }
+  ],
+  "assessments": [
+    {
+      "athleteName": "Kiran Folk",
+      "assessmentDate": "2023-08-16",
+      "movementScreen": {
+        "overheadSquat": {
+          "scoreLeft": 1,
+          "scoreRight": 1,
+          "comments": "Locked up hips, ankles, T-spine"
+        },
+        "hurdleStep": {
+          "scoreLeft": 2,
+          "scoreRight": 2,
+          "comments": ""
+        },
+        "inlineLunge": {
+          "scoreLeft": 2,
+          "scoreRight": 2,
+          "comments": ""
+        },
+        "apleyScratch": {
+          "scoreLeft": "pass",
+          "scoreRight": "pass",
+          "comments": ""
+        }
+      },
+      "performance": {
+        "verticalJump": {
+          "value": 21.5,
+          "attempts": [20.0, 21.5, 21.0],
+          "unit": "in"
+        },
+        "broadJump": {
+          "value": 88,
+          "attempts": [86, 88, 87],
+          "unit": "in"
+        },
+        "tenYardSprint": {
+          "value": 0,
+          "attempts": []
+        },
+        "ohmbThrow": {
+          "value": 30,
+          "attempts": [29, 30, 30],
+          "unit": "in"
+        },
+        "mbShotput": {
+          "value": 28,
+          "attempts": [25, 27, 28],
+          "unit": "in"
+        },
+        "mbLeadArm": {
+          "value": 29,
+          "attempts": [29, 29, 29],
+          "unit": "in"
+        }
+      },
+      "generalComments": ""
+    }
+  ]
+}

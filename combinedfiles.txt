@@ -607,6 +607,7 @@ export default function AssessmentDetail() {
 
 // src/components/AssessmentForm.jsx
 import React, { useState, useEffect } from 'react';
+import { Search, X } from 'lucide-react'; 
 import { useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -642,6 +643,7 @@ export default function AssessmentForm() {
   const [showMissingFields, setShowMissingFields] = useState(false);
   const [missingFields, setMissingFields] = useState([]);
   const [submissionData, setSubmissionData] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Fetch assessment data if editing
   const { data: assessmentData, isLoading: isLoadingAssessment } = useQuery({
@@ -660,7 +662,7 @@ export default function AssessmentForm() {
   // Fetch athletes for dropdown if not in athlete-specific context
   const { data: athletesData, isLoading: isLoadingAthletes } = useQuery({
     queryKey: ['athletes'],
-    queryFn: () => athleteApi.getAthletes(),
+    queryFn: () => athleteApi.getAthletes({ limit: 1000 }), // Increase limit to get all athletes
     enabled: !athleteId // Only fetch if not in athlete-specific context
   });
 
@@ -796,12 +798,57 @@ export default function AssessmentForm() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select an athlete" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {athletesData?.data.map((athlete) => (
-                        <SelectItem key={athlete._id} value={athlete._id}>
-                          {athlete.name}
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[500px]">
+                      <div className="sticky top-0 bg-background p-2 z-10 border-b">
+                        <div className="relative">
+                          <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                          <Input
+                            placeholder="Search athletes..."
+                            className="h-8 pl-8"
+                            onKeyDown={(e) => e.stopPropagation()}
+                            value={searchTerm}
+                            onChange={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setSearchTerm(e.target.value);
+                            }}
+                          />
+                          {searchTerm && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="absolute right-1 top-1 h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSearchTerm('');
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="max-h-[300px] overflow-y-auto">
+                        {athletesData?.data
+                          .filter(athlete => 
+                            athlete.name.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map((athlete) => (
+                          <SelectItem 
+                            key={athlete._id} 
+                            value={athlete._id}
+                          >
+                            <div className="flex flex-col">
+                              <span>{athlete.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {athlete.age ? `Age: ${athlete.age}` : ''} 
+                                {athlete.height?.value ? ` | Height: ${athlete.height.value}"` : ''}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </div>
                     </SelectContent>
                   </Select>
                   {errors.athlete && (
@@ -901,7 +948,7 @@ export default function AssessmentForm() {
 // Content from: C:\MyPrograms\athleteDB\client\src\components\AssessmentList.jsx
 
 import React, { useState } from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams} from 'react-router-dom';
 import { useAthlete } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
 import { assessmentApi } from '../services/api';
@@ -941,7 +988,6 @@ const MobileButtons = ({ athleteId }) => (
 
 export default function AssessmentList() {
   const { athleteId } = useParams();
-  const location = useLocation();
   const isAthleteView = Boolean(athleteId);
   
   // State
@@ -1514,10 +1560,20 @@ export const AthleteForm = () => {
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAthletes } from '../hooks';
+import { useAthletes, useDeleteAthlete } from '../hooks';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Search, X } from 'lucide-react';
+import { Search, X, Trash2, Eye, Edit } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 
 const MobileButtons = () => (
   <Link to="/athletes/new" className="flex-1">
@@ -1527,7 +1583,18 @@ const MobileButtons = () => (
 
 export const AthleteList = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [deleteId, setDeleteId] = useState(null);
   const { data, isLoading } = useAthletes({ search: searchTerm });
+  const deleteAthlete = useDeleteAthlete();
+
+  const handleDelete = async () => {
+    try {
+      await deleteAthlete.mutateAsync(deleteId);
+      setDeleteId(null);
+    } catch (error) {
+      console.error('Error deleting athlete:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -1564,31 +1631,80 @@ export const AthleteList = () => {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {!isLoading && data?.data.map((athlete) => (
-          <Link key={athlete._id} to={`/athletes/${athlete._id}`}>
-            <Card className="hover:shadow-md transition-shadow duration-200">
-              <CardHeader>
+          <Card 
+            key={athlete._id}
+            className="hover:shadow-md transition-shadow duration-200"
+          >
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
                 <CardTitle>{athlete.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Age: {athlete.age || 'N/A'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Total Assessments: {athlete.assessments?.length || 0}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50 -mt-2 -mr-2"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setDeleteId(athlete._id);
+                  }}
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 mb-4">
+                <p className="text-sm text-muted-foreground">
+                  Age: {athlete.age || 'N/A'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Total Assessments: {athlete.assessments ? athlete.assessments.length : 0}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Link to={`/athletes/${athlete._id}`} className="flex-1">
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View
+                  </Button>
+                </Link>
+                <Link to={`/athletes/${athlete._id}/edit`} className="flex-1">
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete this athlete and all their assessment records.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-500 hover:bg-red-600" 
+              onClick={handleDelete}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
@@ -3813,6 +3929,10 @@ exports.getAthletes = asyncHandler(async (req, res) => {
 
   const total = await Athlete.countDocuments(query);
   const athletes = await Athlete.find(query)
+    .populate({
+      path: 'assessments',
+      select: '_id' // Only populate IDs to keep response size small
+    })
     .sort({ name: 1 })
     .limit(limit)
     .skip(skipIndex);
@@ -4104,6 +4224,295 @@ exports.getComparativeStats = asyncHandler(async (req, res) => {
   });
 });
 
+// Content from: C:\MyPrograms\athleteDB\server\data-chloe.json
+
+{
+    "athletes": [
+      {
+        "name": "Chloe Vice",
+        "dateOfBirth": "2009-08-10",
+        "height": {
+          "value": 66.5,
+          "unit": "in"
+        },
+        "weight": {
+          "value": 165,
+          "unit": "lbs"
+        }
+      }
+    ],
+    "assessments": [
+      {
+        "athleteName": "Chloe Vice",
+        "assessmentDate": "2023-09-11",
+        "movementScreen": {
+          "overheadSquat": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Eversion"
+          },
+          "hurdleStep": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Hip Hike"
+          },
+          "inlineLunge": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Back Abduction"
+          },
+          "apleyScratch": {
+            "scoreLeft": "pass",
+            "scoreRight": "fail",
+            "comments": "Abduction"
+          }
+        },
+        "performance": {
+          "verticalJump": {
+            "value": 16,
+            "attempts": [14, 16, 15],
+            "unit": "in"
+          },
+          "broadJump": {
+            "value": 64,
+            "attempts": [64, 64, 64],
+            "unit": "in"
+          },
+          "tenYardSprint": {
+            "value": 1.99,
+            "attempts": [1.99, 2.04, 2.00]
+          },
+          "ohmbThrow": {
+            "value": 26,
+            "attempts": [25, 26, 26],
+            "unit": "in"
+          },
+          "mbShotput": {
+            "value": null,
+            "attempts": [],
+            "unit": "in"
+          },
+          "mbLeadArm": {
+            "value": null,
+            "attempts": [],
+            "unit": "in"
+          }
+        },
+        "generalComments": "Bench, DB Squat, Shoulder Press, Weighted Situp, Pull Up; Clean Jumps 3x3, Split Squats 3x6, Split Jumps 3x3, Pallof 3x10s"
+      }
+    ]
+  }
+  
+
+// Content from: C:\MyPrograms\athleteDB\server\data-kiran.json
+
+{
+  "athletes": [
+    {
+      "name": "Kiran Folk",
+      "dateOfBirth": "2008-06-15",
+      "height": {
+        "value": 68,
+        "unit": "in"
+      },
+      "weight": {
+        "value": 130,
+        "unit": "lbs"
+      }
+    }
+  ],
+  "assessments": [
+    {
+      "athleteName": "Kiran Folk",
+      "assessmentDate": "2023-08-16",
+      "movementScreen": {
+        "overheadSquat": {
+          "scoreLeft": 1,
+          "scoreRight": 1,
+          "comments": "Locked up hips, ankles, T-spine"
+        },
+        "hurdleStep": {
+          "scoreLeft": 2,
+          "scoreRight": 2,
+          "comments": ""
+        },
+        "inlineLunge": {
+          "scoreLeft": 2,
+          "scoreRight": 2,
+          "comments": ""
+        },
+        "apleyScratch": {
+          "scoreLeft": "pass",
+          "scoreRight": "pass",
+          "comments": ""
+        }
+      },
+      "performance": {
+        "verticalJump": {
+          "value": 21.5,
+          "attempts": [20.0, 21.5, 21.0],
+          "unit": "in"
+        },
+        "broadJump": {
+          "value": 88,
+          "attempts": [86, 88, 87],
+          "unit": "in"
+        },
+        "tenYardSprint": {
+          "value": 0,
+          "attempts": []
+        },
+        "ohmbThrow": {
+          "value": 30,
+          "attempts": [29, 30, 30],
+          "unit": "in"
+        },
+        "mbShotput": {
+          "value": 28,
+          "attempts": [25, 27, 28],
+          "unit": "in"
+        },
+        "mbLeadArm": {
+          "value": 29,
+          "attempts": [29, 29, 29],
+          "unit": "in"
+        }
+      },
+      "generalComments": ""
+    }
+  ]
+}
+
+
+// Content from: C:\MyPrograms\athleteDB\server\import.js
+
+// importJsonData.js
+require('dotenv').config();
+const mongoose = require('mongoose');
+const { Athlete } = require('./models/Athlete');
+const { Assessment } = require('./models/Assessment');
+const fs = require('fs');
+
+async function importData(jsonFilePath) {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB');
+    console.log('Connected to MongoDB');
+
+    // Read and parse JSON file
+    const rawData = fs.readFileSync(jsonFilePath);
+    const jsonData = JSON.parse(rawData);
+
+    // Validate data structure
+    if (!jsonData.athletes || !Array.isArray(jsonData.athletes)) {
+      throw new Error('Invalid data format: missing or invalid athletes array');
+    }
+
+    // Process and validate athlete data
+    for (const athlete of jsonData.athletes) {
+      const query = { name: athlete.name }; // Find athlete by name
+      const update = {
+        dateOfBirth: athlete.dateOfBirth,
+        height: athlete.height || { value: null, unit: 'in' },
+        weight: athlete.weight || { value: null, unit: 'lbs' }
+      };
+      const options = { upsert: true, new: true }; // Insert if not found, return the updated document
+      const updatedAthlete = await Athlete.findOneAndUpdate(query, update, options);
+      console.log(`Processed athlete: ${updatedAthlete.name}`);
+    }
+
+    // Process assessments
+    if (jsonData.assessments && Array.isArray(jsonData.assessments)) {
+      for (const assessment of jsonData.assessments) {
+        const athlete = await Athlete.findOne({ name: assessment.athleteName });
+        if (!athlete) {
+          console.warn(`Warning: No athlete found for assessment: ${assessment.athleteName}`);
+          continue;
+        }
+
+        const query = {
+          athlete: athlete._id,
+          assessmentDate: assessment.assessmentDate
+        }; // Find by athlete ID and assessment date
+        const update = {
+          movementScreen: {
+            overheadSquat: assessment.movementScreen?.overheadSquat || {
+              scoreLeft: null,
+              scoreRight: null,
+              comments: ''
+            },
+            hurdleStep: assessment.movementScreen?.hurdleStep || {
+              scoreLeft: null,
+              scoreRight: null,
+              comments: ''
+            },
+            inlineLunge: assessment.movementScreen?.inlineLunge || {
+              scoreLeft: null,
+              scoreRight: null,
+              comments: ''
+            },
+            apleyScratch: assessment.movementScreen?.apleyScratch || {
+              scoreLeft: '',
+              scoreRight: '',
+              comments: ''
+            }
+          },
+          performance: {
+            verticalJump: assessment.performance?.verticalJump || {
+              value: null,
+              attempts: [],
+              unit: 'in'
+            },
+            broadJump: assessment.performance?.broadJump || {
+              value: null,
+              attempts: [],
+              unit: 'in'
+            },
+            tenYardSprint: assessment.performance?.tenYardSprint || {
+              value: null,
+              attempts: []
+            },
+            ohmbThrow: assessment.performance?.ohmbThrow || {
+              value: null,
+              attempts: [],
+              unit: 'in'
+            },
+            mbShotput: assessment.performance?.mbShotput || {
+              value: null,
+              attempts: [],
+              unit: 'in'
+            },
+            mbLeadArm: assessment.performance?.mbLeadArm || {
+              value: null,
+              attempts: [],
+              unit: 'in'
+            }
+          },
+          generalComments: assessment.generalComments || ''
+        };
+        const options = { upsert: true, new: true }; // Insert if not found, return the updated document
+        const updatedAssessment = await Assessment.findOneAndUpdate(query, update, options);
+        console.log(`Processed assessment for: ${athlete.name} on ${updatedAssessment.assessmentDate}`);
+      }
+    }
+
+    console.log('Data import complete');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error importing data:', error);
+    process.exit(1);
+  }
+}
+
+// Check if file path is provided as command line argument
+const jsonFilePath = process.argv[2];
+if (!jsonFilePath) {
+  console.error('Please provide the path to your JSON file');
+  process.exit(1);
+}
+
+importData(jsonFilePath);
+
+
 // Content from: C:\MyPrograms\athleteDB\server\importSampleData.js
 
 // importSampleData.js
@@ -4123,19 +4532,14 @@ const generateAthleteData = () => {
   const maleFirstNames = ['James', 'William', 'Michael', 'David', 'Robert', 'John', 'Thomas', 'Daniel', 'Christopher', 'Matthew'];
   const femaleFirstNames = ['Emma', 'Olivia', 'Ava', 'Isabella', 'Sophia', 'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn'];
   const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'];
-  
-  const isMale = Math.random() < 0.5;
-  const firstName = isMale ? 
-    maleFirstNames[randomInt(0, maleFirstNames.length - 1)] : 
-    femaleFirstNames[randomInt(0, femaleFirstNames.length - 1)];
-  const lastName = lastNames[randomInt(0, lastNames.length - 1)];
-  
-  const heightInches = isMale ? randomInt(68, 76) : randomInt(62, 70);
-  const weightLbs = isMale ? 
-    randomInt(160, 200) : 
-    randomInt(130, 170);
 
-  // Generate birthdate for high school athlete (14-18 years old)
+  const isMale = Math.random() < 0.5;
+  const firstName = isMale ? maleFirstNames[randomInt(0, maleFirstNames.length - 1)] : femaleFirstNames[randomInt(0, femaleFirstNames.length - 1)];
+  const lastName = lastNames[randomInt(0, lastNames.length - 1)];
+
+  const heightInches = isMale ? randomInt(68, 76) : randomInt(62, 70);
+  const weightLbs = isMale ? randomInt(160, 200) : randomInt(130, 170);
+
   const now = new Date();
   const minAge = new Date(now.getFullYear() - 18, now.getMonth(), now.getDate());
   const maxAge = new Date(now.getFullYear() - 14, now.getMonth(), now.getDate());
@@ -4146,16 +4550,16 @@ const generateAthleteData = () => {
     dateOfBirth: birthDate.toISOString().split('T')[0],
     height: {
       value: heightInches,
-      unit: "in"
+      unit: 'in',
     },
     weight: {
       value: weightLbs,
-      unit: "lbs"
-    }
+      unit: 'lbs',
+    },
   };
 };
 
-const generateAssessment = (date) => {
+const generateAssessment = (athleteId, date) => {
   const generateScore = () => randomInt(1, 3);
   const generateAttempts = (baseValue, range) => {
     const attempts = [baseValue];
@@ -4172,131 +4576,115 @@ const generateAssessment = (date) => {
   const mbLeadArm = randomInt(155, 185);
 
   return {
+    athlete: athleteId,
     assessmentDate: date.toISOString().split('T')[0],
     movementScreen: {
       overheadSquat: {
         scoreLeft: generateScore(),
         scoreRight: generateScore(),
-        comments: ["Good form", "Needs work on depth", "Watch knee alignment", "Maintain neutral spine"][randomInt(0, 3)]
+        comments: ["Good form", "Needs work on depth", "Watch knee alignment", "Maintain neutral spine"][randomInt(0, 3)],
       },
       hurdleStep: {
         scoreLeft: generateScore(),
         scoreRight: generateScore(),
-        comments: ["Stable throughout", "Hip rotation needs work", "Good hip mobility", "Watch knee stability"][randomInt(0, 3)]
+        comments: ["Stable throughout", "Hip rotation needs work", "Good hip mobility", "Watch knee stability"][randomInt(0, 3)],
       },
       inlineLunge: {
         scoreLeft: generateScore(),
         scoreRight: generateScore(),
-        comments: ["Balanced movement", "Work on stability", "Good control", "Improve hip mobility"][randomInt(0, 3)]
+        comments: ["Balanced movement", "Work on stability", "Good control", "Improve hip mobility"][randomInt(0, 3)],
       },
       apleyScratch: {
         scoreLeft: Math.random() < 0.8 ? "pass" : "fail",
         scoreRight: Math.random() < 0.8 ? "pass" : "fail",
-        comments: ["Full ROM", "Limited upper reach", "Good mobility", "Restricted movement pattern"][randomInt(0, 3)]
-      }
+        comments: ["Full ROM", "Limited upper reach", "Good mobility", "Restricted movement pattern"][randomInt(0, 3)],
+      },
     },
     performance: {
       verticalJump: {
         value: verticalJump,
         attempts: generateAttempts(verticalJump, 1),
-        unit: "in"
+        unit: "in",
       },
       broadJump: {
         value: broadJump,
         attempts: generateAttempts(broadJump, 2),
-        unit: "in"
+        unit: "in",
       },
       tenYardSprint: {
         value: sprint,
-        attempts: generateAttempts(sprint, 0.03)
+        attempts: generateAttempts(sprint, 0.03),
       },
       ohmbThrow: {
         value: ohmbThrow,
         attempts: generateAttempts(ohmbThrow, 6),
-        unit: "in"
+        unit: "in",
       },
       mbShotput: {
         value: mbShotput,
         attempts: generateAttempts(mbShotput, 5),
-        unit: "in"
+        unit: "in",
       },
       mbLeadArm: {
         value: mbLeadArm,
         attempts: generateAttempts(mbLeadArm, 4),
-        unit: "in"
-      }
+        unit: "in",
+      },
     },
     generalComments: [
       "Strong overall performance. Focus on mobility work.",
       "Good progress shown. Continue with current program.",
       "Shows potential. Need to address movement patterns.",
       "Consistent improvement across all areas.",
-      "Some asymmetries noted. Implement corrective exercises."
-    ][randomInt(0, 4)]
+      "Some asymmetries noted. Implement corrective exercises.",
+    ][randomInt(0, 4)],
   };
 };
-
-const sampleData = {
-  athletes: Array(100).fill(null).map(() => generateAthleteData()),
-  assessments: []
-};
-
-// Generate 1-4 assessments for each athlete
-sampleData.athletes.forEach((athlete, index) => {
-  const numAssessments = randomInt(1, 4);
-  const now = new Date();
-  const threeYearsAgo = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
-  
-  const assessmentDates = Array(numAssessments)
-    .fill(null)
-    .map(() => generateRandomDate(threeYearsAgo, now))
-    .sort((a, b) => a - b);
-
-  const athleteAssessments = assessmentDates.map(date => generateAssessment(date));
-  sampleData.assessments.push(...athleteAssessments);
-});
 
 async function importData() {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB');
-    console.log('Connected to MongoDB');
+    console.log("Connected to MongoDB");
 
     // Clear existing data
     await Athlete.deleteMany({});
     await Assessment.deleteMany({});
-    console.log('Cleared existing data');
+    console.log("Cleared existing data");
 
-    // Import athletes
-    const athletes = await Athlete.insertMany(sampleData.athletes);
-    console.log('Imported athletes');
+    // Generate athletes
+    const athletes = Array(100)
+      .fill(null)
+      .map(() => generateAthleteData());
 
-    // Create assessments for each athlete
-    const assessmentPromises = athletes.map(async (athlete, index) => {
-      const athleteAssessments = sampleData.assessments.slice(
-        index * 4,
-        index * 4 + 4
-      ).filter(a => a); // Remove undefined entries
-      
-      const assessmentData = athleteAssessments.map(assessment => ({
-        ...assessment,
-        athlete: athlete._id
-      }));
-      
-      return Assessment.create(assessmentData);
-    });
+    const athleteDocs = await Athlete.insertMany(athletes);
+    console.log("Imported athletes");
 
-    await Promise.all(assessmentPromises);
-    console.log('Imported assessments');
+    // Generate assessments
+    const assessments = [];
+    for (const athlete of athleteDocs) {
+      const numAssessments = randomInt(1, 4);
+      const now = new Date();
+      const threeYearsAgo = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate());
 
-    console.log('Sample data import complete');
+      for (let i = 0; i < numAssessments; i++) {
+        const assessmentDate = generateRandomDate(threeYearsAgo, now);
+        assessments.push(generateAssessment(athlete._id, assessmentDate));
+      }
+    }
+
+    await Assessment.insertMany(assessments);
+    console.log("Imported assessments");
+
+    console.log("Sample data import complete");
     process.exit(0);
   } catch (error) {
-    console.error('Error importing data:', error);
+    console.error("Error importing data:", error);
     process.exit(1);
   }
 }
 
 importData();
+
 
 // Content from: C:\MyPrograms\athleteDB\server\models\Assessment.js
 

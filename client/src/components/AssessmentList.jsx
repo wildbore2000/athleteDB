@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import { Link, useParams} from 'react-router-dom';
 import { useAthlete } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
 import { assessmentApi } from '../services/api';
@@ -39,7 +39,6 @@ const MobileButtons = ({ athleteId }) => (
 
 export default function AssessmentList() {
   const { athleteId } = useParams();
-  const location = useLocation();
   const isAthleteView = Boolean(athleteId);
   
   // State

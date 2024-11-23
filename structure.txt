@@ -62,6 +62,9 @@
         |-- assessmentController.js
         |-- athleteController.js
         |-- statisticsController.js
+    |-- data-chloe.json
+    |-- data-kiran.json
+    |-- import.js
     |-- importSampleData.js
     |-- models
         |-- Assessment.js

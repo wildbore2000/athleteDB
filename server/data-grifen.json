@@ -1,0 +1,77 @@
+{
+    "athletes": [
+      {
+        "name": "Griff Tanner",
+        "dateOfBirth": "2012-09-17",
+        "height": {
+          "value": null,
+          "unit": "in"
+        },
+        "weight": {
+          "value": null,
+          "unit": "lbs"
+        }
+      }
+    ],
+    "assessments": [
+      {
+        "athleteName": "Griff Tanner",
+        "assessmentDate": "2023-10-02",
+        "movementScreen": {
+          "overheadSquat": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": "Mobile, good stability needs work"
+          },
+          "hurdleStep": {
+            "scoreLeft": 2,
+            "scoreRight": 2,
+            "comments": ""
+          },
+          "inlineLunge": {
+            "scoreLeft": null,
+            "scoreRight": null,
+            "comments": ""
+          },
+          "apleyScratch": {
+            "scoreLeft": "pass",
+            "scoreRight": "pass",
+            "comments": ""
+          }
+        },
+        "performance": {
+          "verticalJump": {
+            "value": 16,
+            "attempts": [14, 16],
+            "unit": "in"
+          },
+          "broadJump": {
+            "value": 69,
+            "attempts": [67, 68, 69],
+            "unit": "in"
+          },
+          "tenYardSprint": {
+            "value": 2.06,
+            "attempts": [2.06, 2.07, 2.13]
+          },
+          "ohmbThrow": {
+            "value": 26,
+            "attempts": [25, 25, 30, 26],
+            "unit": "in"
+          },
+          "mbShotput": {
+            "value": 30,
+            "attempts": [30, 30, null, 26],
+            "unit": "in"
+          },
+          "mbLeadArm": {
+            "value": null,
+            "attempts": [],
+            "unit": "in"
+          }
+        },
+        "generalComments": "Some measurements missing or unclear (e.g., shotput and height/weight). Review needed for clarity."
+      }
+    ]
+  }
+  
