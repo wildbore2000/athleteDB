@@ -32,8 +32,13 @@ const assessmentSchema = new mongoose.Schema({
         scoreLeft: { type: String, enum: ['pass', 'fail', ''] },
         scoreRight: { type: String, enum: ['pass', 'fail', ''] },
         comments: String
+      },
+      handGrip: {
+        scoreLeft: { type: Number },
+        scoreRight: { type: Number },
+        comments: String
       }
-    },
+        },
     performance: {
       verticalJump: {
         value: Number,
@@ -52,17 +57,27 @@ const assessmentSchema = new mongoose.Schema({
       ohmbThrow: {
         value: Number,
         attempts: [Number],
-        unit: { type: String, default: 'in' }
+        unit: { type: String, default: 'mph' }
       },
       mbShotput: {
         value: Number,
         attempts: [Number],
-        unit: { type: String, default: 'in' }
+        unit: { type: String, default: 'mph' }
       },
       mbLeadArm: {
         value: Number,
         attempts: [Number],
-        unit: { type: String, default: 'in' }
+        unit: { type: String, default: 'mph' }
+      },
+      pullUps: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'reps' }
+      },
+      midThighPull: {
+        value: Number,
+        attempts: [Number],
+        unit: { type: String, default: 'lbs' }
       }
     },
     generalComments: {

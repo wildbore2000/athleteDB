@@ -53,12 +53,18 @@ export const AthleteDetail = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold">{athlete.name}</h1>
-          <p className="text-muted-foreground">
-            Age: {athlete.age || 'N/A'} | 
-            Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'} | 
-            Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}
-          </p>
+        <h1 className="text-2xl font-bold">{athlete.name}</h1>
+  <p className="text-muted-foreground">
+    {athlete.team && <span>Team: {athlete.team} | </span>}
+    Age: {athlete.age || 'N/A'} | 
+    Height: {athlete.height?.value ? `${athlete.height.value}"` : 'N/A'} | 
+    Weight: {athlete.weight?.value ? `${athlete.weight.value} lbs` : 'N/A'}
+  </p>
+  {athlete.email && (
+    <p className="text-sm text-muted-foreground">
+      Email: {athlete.email}
+    </p>
+  )}
         </div>
         <div className="hidden md:flex md:space-x-2">
           <Link to={`/athletes/${id}/edit`}>

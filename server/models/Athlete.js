@@ -7,6 +7,17 @@ const athleteSchema = new mongoose.Schema({
     required: [true, 'Name is required'],
     trim: true
   },
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    // Optional basic email validation
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address']
+  },
+  team: {
+    type: String,
+    trim: true
+  },
   dateOfBirth: {
     type: Date,
     required: false

@@ -164,6 +164,17 @@ export default function AssessmentDetail() {
                       </p>
                     )}
                   </div>
+                  {/* Hand Grip */}
+<div>
+  <h3 className="font-semibold mb-2">Hand Grip</h3>
+  <p>Left: {assessment.movementScreen.handGrip?.scoreLeft || 'N/A'} lbs</p>
+  <p>Right: {assessment.movementScreen.handGrip?.scoreRight || 'N/A'} lbs</p>
+  {assessment.movementScreen.handGrip?.comments && (
+    <p className="text-sm text-gray-600 mt-1">
+      Comments: {assessment.movementScreen.handGrip.comments}
+    </p>
+  )}
+</div>
                 </>
               )}
             </div>
@@ -236,6 +247,26 @@ export default function AssessmentDetail() {
                       </div>
                     </div>
                   </div>
+{/* Add to Performance Measurements section */}
+<div>
+  <h3 className="font-semibold mb-3">Strength Tests</h3>
+  <div className="space-y-2">
+    <div>
+      <p className="font-medium">Pull Ups</p>
+      <p>Best: {assessment.performance.pullUps?.value || 'N/A'} reps</p>
+      <p className="text-sm text-gray-600">
+        Attempts: {assessment.performance.pullUps?.attempts?.join(', ')}
+      </p>
+    </div>
+    <div>
+      <p className="font-medium">Mid Thigh Pull</p>
+      <p>Best: {assessment.performance.midThighPull?.value || 'N/A'} lbs</p>
+      <p className="text-sm text-gray-600">
+        Attempts: {assessment.performance.midThighPull?.attempts?.join(', ')}
+      </p>
+    </div>
+  </div>
+</div>
                 </>
               )}
             </div>

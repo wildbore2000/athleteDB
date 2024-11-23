@@ -25,20 +25,32 @@ const PerformanceMeasurements = ({ register, watch, setValue }) => {
     {
       name: 'OH MB Throw',
       key: 'ohmbThrow',
-      unit: 'inches',
-      type: 'distance'
+      unit: 'mph', 
+      type: 'speed'   
     },
     {
       name: 'MB Shotput',
       key: 'mbShotput',
-      unit: 'inches',
-      type: 'distance'
+      unit: 'mph', 
+      type: 'speed' 
     },
     {
       name: 'MB Lead Arm',
       key: 'mbLeadArm',
-      unit: 'inches',
-      type: 'distance'
+      unit: 'mph', 
+      type: 'speed' 
+    },
+    {
+      name: 'Pull Ups',
+      key: 'pullUps',
+      unit: 'reps',
+      type: 'reps'
+    },
+    {
+      name: 'Mid Thigh Pull',
+      key: 'midThighPull',
+      unit: 'lbs',
+      type: 'strength'
     }
   ];
 
@@ -106,7 +118,11 @@ const PerformanceMeasurements = ({ register, watch, setValue }) => {
               <td className="border p-2 font-bold">
                 {watch(`performance.${test.key}.value`)
                   ? `${watch(`performance.${test.key}.value`).toFixed(2)}${
-                      test.type === 'time' ? 's' : '"'
+                    test.type === 'time' ? 's' : 
+                    test.type === 'speed' ? ' mph' :
+                    test.type === 'reps' ? ' reps' :
+                    test.type === 'strength' ? ' lbs' :
+                    '"'
                     }`
                   : '-'}
               </td>

@@ -50,6 +50,27 @@ export const AthleteForm = () => {
           </div>
 
           <div>
+            <Label>Email</Label>
+            <Input 
+              type="email" 
+              {...register('email', {
+                pattern: {
+                  value: /^\S+@\S+\.\S+$/,
+                  message: "Please enter a valid email address"
+                }
+              })} 
+            />
+            {errors.email && (
+              <span className="text-red-500 text-sm">{errors.email.message}</span>
+            )}
+          </div>
+
+          <div>
+            <Label>Team</Label>
+            <Input {...register('team')} />
+          </div>
+
+          <div>
             <Label>Date of Birth</Label>
             <Input type="date" {...register('dateOfBirth')} />
           </div>

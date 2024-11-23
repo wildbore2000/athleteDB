@@ -31,13 +31,27 @@ const MovementScreen = ({ register }) => {
       name: "Apley's Scratch", 
       key: "apleyScratch", 
       type: "passfail" 
+    },
+    { 
+      name: "Hand Grip", 
+      key: "handGrip", 
+      type: "strength" 
     }
   ];
 
   const renderScoreInput = (movement, side) => {
     const fieldName = `movementScreen.${movement.key}.score${side}`;
     
-    if (movement.type === 'score') {
+    if (movement.type === 'strength') {
+      return (
+        <Input
+          type="number"
+          className="w-20"
+          placeholder="lbs"
+          {...register(fieldName)}
+        />
+      );
+    } else if (movement.type === 'score') {
       return (
         <Input
           type="number"
@@ -87,6 +101,12 @@ const MovementScreen = ({ register }) => {
                 <tr key={movement.name} className="bg-white">
                   <td className="px-6 py-4 font-medium">
                     {movement.name}
+                    {movement.type === 'score' && (
+                      <span className="text-xs text-gray-500 ml-1">(1-3)</span>
+                    )}
+                    {movement.type === 'strength' && (
+                      <span className="text-xs text-gray-500 ml-1">(lbs)</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">

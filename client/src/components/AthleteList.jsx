@@ -93,6 +93,16 @@ export const AthleteList = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
+              {athlete.team && (
+    <p className="text-sm text-muted-foreground">
+      Team: {athlete.team}
+    </p>
+  )}
+  {athlete.email && (
+    <p className="text-sm text-muted-foreground">
+      Email: {athlete.email}
+    </p>
+  )}
                 <p className="text-sm text-muted-foreground">
                   Age: {athlete.age || 'N/A'}
                 </p>

@@ -3,9 +3,9 @@ export const METRICS = {
     verticalJump: { label: 'Vertical Jump', unit: 'inches' },
     broadJump: { label: 'Broad Jump', unit: 'inches' },
     tenYardSprint: { label: '10-Yard Sprint', unit: 'seconds' },
-    ohmbThrow: { label: 'OH MB Throw', unit: 'inches' },
-    mbShotput: { label: 'MB Shotput', unit: 'inches' },
-    mbLeadArm: { label: 'MB Lead Arm', unit: 'inches' }
+    ohmbThrow: { label: 'OH MB Throw', unit: 'mph' },
+    mbShotput: { label: 'MB Shotput', unit: 'mph' },
+    mbLeadArm: { label: 'MB Lead Arm', unit: 'mph' }
   };
   
   export const TIMEFRAMES = {
