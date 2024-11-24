@@ -182,6 +182,7 @@ import { AthleteDetail } from './components/AthleteDetail';
 import AssessmentList from './components/AssessmentList';
 import AssessmentForm from './components/AssessmentForm';
 import AssessmentDetail from './components/AssessmentDetail';
+import MeasurementManager from './components/MeasurementManager';
 
 // Default Mobile Buttons Component for Dashboard
 const DashboardMobileButtons = () => (
@@ -223,6 +224,7 @@ const AppContent = () => {
   return (
     <Layout mobileButtons={getMobileButtons()}>
       <Routes>
+        {/* Dashboard Route */}
         <Route path="/" element={<Dashboard />} />
         
         {/* Athletes Routes */}
@@ -240,7 +242,11 @@ const AppContent = () => {
         <Route path="/athletes/:athleteId/assessments/new" element={<AssessmentForm />} />
         <Route path="/athletes/:athleteId/assessments/:id" element={<AssessmentDetail />} />
         <Route path="/athletes/:athleteId/assessments/:id/edit" element={<AssessmentForm />} />
+        
+        {/* Settings Routes */}
+        <Route path="/settings/measurements" element={<MeasurementManager />} />
 
+        {/* Catch all redirect to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>
@@ -2154,6 +2160,7 @@ import {
   Users,
   ClipboardList,
   Menu,
+  Settings,
   X
 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -2179,6 +2186,11 @@ const mainNav = [
     name: 'Assessments',
     href: '/assessments',
     icon: ClipboardList
+  },
+  {
+    name: 'Measurement Settings',
+    href: '/settings/measurements',
+    icon: Settings
   }
 ];
 
@@ -2304,6 +2316,504 @@ const Layout = ({ children, mobileButtons }) => {
 };
 
 export default Layout;
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\MeasurementManager.jsx
+
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, X, Trash2, Settings2, RefreshCw } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { measurementTypeApi } from '../services/api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
+
+const MeasurementForm = ({ initialData, onSubmit }) => {
+  const [formData, setFormData] = useState(initialData || {
+    name: '',
+    key: '',
+    category: 'movementScreen',
+    type: 'score',
+    unit: '',
+    isDefault: false,
+    config: {
+      hasSides: true,
+      hasAttempts: false,
+      maxAttempts: 3,
+    },
+  });
+
+  const typeOptions = {
+    movementScreen: ['score', 'passfail', 'strength'],
+    performance: ['distance', 'time', 'speed', 'reps', 'strength'],
+  };
+
+  const handleCategoryChange = (value) => {
+    console.log('Category Change Triggered:', value);
+
+    const defaultType = typeOptions[value]?.[0] || '';
+    setFormData((prev) => ({
+      ...prev,
+      category: value,
+      type: defaultType, // Reset to the first valid type
+      config: {
+        ...prev.config,
+        hasAttempts: value === 'performance',
+      },
+    }));
+
+    console.log(`Updated category to "${value}" with default type "${defaultType}"`);
+  };
+
+  const handleTypeChange = (value) => {
+    console.log('Type Changed to:', value);
+    setFormData((prev) => ({
+      ...prev,
+      type: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.key) {
+      formData.key = formData.name.toLowerCase().replace(/\s+/g, '');
+    }
+    console.log('Form Submitted:', formData);
+    onSubmit(formData);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid gap-4">
+        {/* Name Input */}
+        <div>
+          <Label>Name</Label>
+          <Input
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+        </div>
+
+        {/* Category Dropdown */}
+        <div>
+          <Label>Category</Label>
+          <Select
+            value={formData.category}
+            onValueChange={(value) => {
+              console.log('Dropdown value selected:', value);
+              handleCategoryChange(value);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue>
+                {formData.category === 'movementScreen' ? 'Movement Screen' : 'Performance'}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="movementScreen">Movement Screen</SelectItem>
+              <SelectItem value="performance">Performance</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Type Dropdown */}
+        <div>
+          <Label>Type</Label>
+          <Select
+            key={formData.category} // Force re-render of dropdown when category changes
+            value={formData.type}
+            onValueChange={handleTypeChange}
+          >
+            <SelectTrigger>
+              <SelectValue>
+                {formData.type ? formData.type.charAt(0).toUpperCase() + formData.type.slice(1) : ''}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {typeOptions[formData.category]?.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Unit Input */}
+        {['strength', 'distance', 'speed'].includes(formData.type) && (
+          <div>
+            <Label>Unit</Label>
+            <Input
+              value={formData.unit}
+              onChange={(e) =>
+                setFormData({ ...formData, unit: e.target.value })
+              }
+              placeholder="e.g., lbs, inches, mph"
+            />
+          </div>
+        )}
+
+        {/* Config Checkboxes */}
+        <div className="grid grid-cols-2 gap-4">
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={formData.config.hasSides}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  config: { ...formData.config, hasSides: e.target.checked },
+                })
+              }
+            />
+            <span>Has Left/Right Sides</span>
+          </label>
+
+          <label className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              checked={formData.isDefault}
+              onChange={(e) =>
+                setFormData({ ...formData, isDefault: e.target.checked })
+              }
+            />
+            <span>Show by Default</span>
+          </label>
+
+          {formData.category === 'performance' && (
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={formData.config.hasAttempts}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    config: {
+                      ...formData.config,
+                      hasAttempts: e.target.checked,
+                    },
+                  })
+                }
+              />
+              <span>Multiple Attempts</span>
+            </label>
+          )}
+        </div>
+
+        {/* Max Attempts Input */}
+        {formData.config.hasAttempts && (
+          <div>
+            <Label>Maximum Attempts</Label>
+            <Input
+              type="number"
+              min={1}
+              max={5}
+              value={formData.config.maxAttempts}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  config: {
+                    ...formData.config,
+                    maxAttempts: parseInt(e.target.value),
+                  },
+                })
+              }
+            />
+          </div>
+        )}
+      </div>
+
+      <DialogFooter>
+        <Button type="submit">Save Measurement</Button>
+      </DialogFooter>
+    </form>
+  );
+};
+
+
+const MeasurementManager = () => {
+  const [deleteId, setDeleteId] = useState(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const queryClient = useQueryClient();
+
+
+
+  // Fetch measurement types
+  const { data: measurementTypes, isLoading } = useQuery({
+    queryKey: ['measurementTypes'],
+    queryFn: () => measurementTypeApi.getMeasurementTypes()
+  });
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: (data) => measurementTypeApi.createMeasurementType(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['measurementTypes']);
+    }
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => measurementTypeApi.updateMeasurementType(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['measurementTypes']);
+    }
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => measurementTypeApi.deleteMeasurementType(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['measurementTypes']);
+      setDeleteId(null);
+    }
+  });
+
+  // Reinitialize defaults mutation
+  const reinitializeMutation = useMutation({
+    mutationFn: () => measurementTypeApi.reinitializeDefaults(),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['measurementTypes']);
+    }
+  });
+
+  const handleReinitialize = () => {
+    setShowResetConfirm(false);
+    reinitializeMutation.mutate();
+  };
+
+  const movementScreens = measurementTypes?.data.filter(m => m.category === 'movementScreen') || [];
+  const performanceMeasures = measurementTypes?.data.filter(m => m.category === 'performance') || [];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Measurement Types</h1>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowResetConfirm(true)}
+            disabled={reinitializeMutation.isLoading}
+          >
+            <RefreshCw className={cn(
+              "h-4 w-4 mr-2",
+              reinitializeMutation.isLoading && "animate-spin"
+            )} />
+            {reinitializeMutation.isLoading ? 'Reinitializing...' : 'Reinitialize Defaults'}
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Measurement
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Add New Measurement</DialogTitle>
+                <DialogDescription>
+                  Create a new measurement type for assessments
+                </DialogDescription>
+              </DialogHeader>
+              <MeasurementForm 
+                initialData={{
+                  name: '',
+                  key: '',
+                  category: 'movementScreen',
+                  type: 'score',
+                  unit: '',
+                  isDefault: false,
+                  config: {
+                    hasSides: true,
+                    hasAttempts: false,
+                    maxAttempts: 3
+                  }
+                }}
+                onSubmit={(data) => createMutation.mutate(data)} 
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+
+      {/* Movement Screen Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Movement Screen Measurements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="divide-y">
+            {movementScreens.map((measurement) => (
+              <div key={measurement._id} className="py-4 flex justify-between items-center">
+                <div>
+                  <h3 className="font-medium">{measurement.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Type: {measurement.type}
+                    {measurement.unit ? ` | Unit: ${measurement.unit}` : ''}
+                    {measurement.config.hasSides ? ' | Left/Right Sides' : ''}
+                    {measurement.isDefault ? ' | Default' : ''}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Measurement</DialogTitle>
+                      </DialogHeader>
+                      <MeasurementForm 
+                        initialData={measurement}
+                        onSubmit={(data) => updateMutation.mutate({ 
+                          id: measurement._id, 
+                          data 
+                        })}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                  <Button 
+                    variant="destructive" 
+                    size="icon"
+                    onClick={() => setDeleteId(measurement._id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Performance Measurements Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Performance Measurements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="divide-y">
+            {performanceMeasures.map((measurement) => (
+              <div key={measurement._id} className="py-4 flex justify-between items-center">
+                <div>
+                  <h3 className="font-medium">{measurement.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Type: {measurement.type}
+                    {measurement.unit ? ` | Unit: ${measurement.unit}` : ''}
+                    {measurement.config.hasAttempts ? 
+                      ` | ${measurement.config.maxAttempts} attempts` : ''}
+                    {measurement.isDefault ? ' | Default' : ''}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="icon">
+                        <Settings2 className="h-4 w-4" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit Measurement</DialogTitle>
+                      </DialogHeader>
+                      <MeasurementForm 
+                        initialData={measurement}
+                        onSubmit={(data) => updateMutation.mutate({ 
+                          id: measurement._id, 
+                          data 
+                        })}
+                      />
+                    </DialogContent>
+                  </Dialog>
+                  <Button 
+                    variant="destructive" 
+                    size="icon"
+                    onClick={() => setDeleteId(measurement._id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reinitialize Default Measurements?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will ensure all default measurements are present and properly configured. 
+              Custom measurements will not be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReinitialize}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this measurement type. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-500 hover:bg-red-600"
+              onClick={() => deleteMutation.mutate(deleteId)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default MeasurementManager;
 
 // Content from: C:\MyPrograms\AthleteDB\client\src\components\MovementScreen.jsx
 
@@ -2900,6 +3410,104 @@ const CardTitle = React.forwardRef(({ className, children, ...props }, ref) => (
 ))
 
 export { Card, CardHeader, CardContent, CardTitle }
+
+// Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\dialog.jsx
+
+// src/components/ui/dialog.jsx
+import * as React from "react"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+
+import { cn } from "../../lib/utils"
+import { X } from "lucide-react"
+
+const Dialog = DialogPrimitive.Root
+
+const DialogTrigger = DialogPrimitive.Trigger
+
+const DialogPortal = DialogPrimitive.Portal
+
+const DialogClose = DialogPrimitive.Close
+
+const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      className
+    )}
+    {...props} />
+))
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+
+const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
+  <DialogPortal>
+    <DialogOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        className
+      )}
+      {...props}>
+      {children}
+      <DialogPrimitive.Close
+        className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPortal>
+))
+DialogContent.displayName = DialogPrimitive.Content.displayName
+
+const DialogHeader = ({
+  className,
+  ...props
+}) => (
+  <div
+    className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)}
+    {...props} />
+)
+DialogHeader.displayName = "DialogHeader"
+
+const DialogFooter = ({
+  className,
+  ...props
+}) => (
+  <div
+    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
+    {...props} />
+)
+DialogFooter.displayName = "DialogFooter"
+
+const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
+  <DialogPrimitive.Title
+    ref={ref}
+    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    {...props} />
+))
+DialogTitle.displayName = DialogPrimitive.Title.displayName
+
+const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props} />
+))
+DialogDescription.displayName = DialogPrimitive.Description.displayName
+
+export {
+  Dialog,
+  DialogPortal,
+  DialogOverlay,
+  DialogClose,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+}
 
 // Content from: C:\MyPrograms\AthleteDB\client\src\components\ui\input.jsx
 
@@ -3626,6 +4234,34 @@ export const assessmentApi = {
   }
 };
 
+// MeasurementTypes API
+export const measurementTypeApi = {
+  getMeasurementTypes: async (params = {}) => {
+    const response = await api.get('/measurement-types', { params });
+    return response.data;
+  },
+
+  createMeasurementType: async (data) => {
+    const response = await api.post('/measurement-types', data);
+    return response.data;
+  },
+
+  updateMeasurementType: async (id, data) => {
+    const response = await api.put(`/measurement-types/${id}`, data);
+    return response.data;
+  },
+
+  deleteMeasurementType: async (id) => {
+    const response = await api.delete(`/measurement-types/${id}`);
+    return response.data;
+  },
+
+  reinitializeDefaults: async () => {
+    const response = await api.post('/measurement-types/reinitialize-defaults');
+    return response.data;
+  }
+};
+
 // Analytics API
 export const analyticsApi = {
   // Get dashboard statistics
@@ -4183,6 +4819,85 @@ exports.getAthleteTrends = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     data: trends
+  });
+});
+
+// Content from: C:\MyPrograms\AthleteDB\server\controllers\measurementTypeController.js
+
+// In server/controllers/measurementTypeController.js
+
+const { MeasurementType } = require('../models/MeasurementType');
+const asyncHandler = require('express-async-handler');
+
+// Get all measurement types
+exports.getMeasurementTypes = asyncHandler(async (req, res) => {
+  const { category, isActive } = req.query;
+  
+  const query = {};
+  if (category) query.category = category;
+  if (isActive !== undefined) query.isActive = isActive === 'true';
+
+  const measurements = await MeasurementType.find(query).sort('category name');
+
+  res.status(200).json({
+    success: true,
+    data: measurements
+  });
+});
+
+// Create new measurement type
+exports.createMeasurementType = asyncHandler(async (req, res) => {
+  const measurement = await MeasurementType.create(req.body);
+  
+  res.status(201).json({
+    success: true,
+    data: measurement
+  });
+});
+
+// Update measurement type
+exports.updateMeasurementType = asyncHandler(async (req, res) => {
+  const measurement = await MeasurementType.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true }
+  );
+
+  if (!measurement) {
+    res.status(404);
+    throw new Error('Measurement type not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    data: measurement
+  });
+});
+
+// Delete measurement type
+exports.deleteMeasurementType = asyncHandler(async (req, res) => {
+  const measurement = await MeasurementType.findById(req.params.id);
+
+  if (!measurement) {
+    res.status(404);
+    throw new Error('Measurement type not found');
+  }
+
+  await measurement.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    data: {}
+  });
+});
+
+// Reinitialize default measurements
+exports.reinitializeDefaults = asyncHandler(async (req, res) => {
+  await MeasurementType.initializeDefaults();
+  
+  res.status(200).json({
+    success: true,
+    message: 'Default measurements reinitialized'
   });
 });
 
@@ -5044,6 +5759,173 @@ const Athlete = mongoose.model('Athlete', athleteSchema);
 
 module.exports = { Athlete };
 
+// Content from: C:\MyPrograms\AthleteDB\server\models\MeasurementType.js
+
+// server/models/MeasurementType.js
+const mongoose = require('mongoose');
+
+const measurementTypeSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  key: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  category: {
+    type: String,
+    required: true,
+    enum: ['movementScreen', 'performance']
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ['score', 'passfail', 'strength', 'distance', 'time', 'speed', 'reps']
+  },
+  unit: {
+    type: String,
+    required: function() {
+      return ['distance', 'speed', 'strength'].includes(this.type);
+    }
+  },
+  isDefault: {
+    type: Boolean,
+    default: false
+  },
+  isActive: {
+    type: Boolean,
+    default: true
+  },
+  config: {
+    hasSides: {
+      type: Boolean,
+      default: true
+    },
+    hasAttempts: {
+      type: Boolean,
+      default: function() {
+        return this.category === 'performance';
+      }
+    },
+    maxAttempts: {
+      type: Number,
+      default: 3
+    },
+    minValue: Number,
+    maxValue: Number
+  }
+}, {
+  timestamps: true
+});
+
+// Function to initialize default measurements
+measurementTypeSchema.statics.initializeDefaults = async function() {
+  const defaults = [
+    // Movement Screen defaults
+    {
+      name: 'Overhead Squat',
+      key: 'overheadSquat',
+      category: 'movementScreen',
+      type: 'score',
+      config: {
+        hasSides: true,
+        minValue: 1,
+        maxValue: 3
+      },
+      isDefault: true
+    },
+    {
+      name: 'Hurdle Step',
+      key: 'hurdleStep',
+      category: 'movementScreen',
+      type: 'score',
+      config: {
+        hasSides: true,
+        minValue: 1,
+        maxValue: 3
+      },
+      isDefault: true
+    },
+    {
+      name: "Apley's Scratch",
+      key: 'apleyScratch',
+      category: 'movementScreen',
+      type: 'passfail',
+      config: {
+        hasSides: true
+      },
+      isDefault: true
+    },
+    {
+      name: 'Hand Grip',
+      key: 'handGrip',
+      category: 'movementScreen',
+      type: 'strength',
+      unit: 'lbs',
+      config: {
+        hasSides: true
+      },
+      isDefault: true
+    },
+    
+    // Performance defaults
+    {
+      name: 'Vertical Jump',
+      key: 'verticalJump',
+      category: 'performance',
+      type: 'distance',
+      unit: 'in',
+      config: {
+        hasSides: false,
+        hasAttempts: true,
+        maxAttempts: 3
+      },
+      isDefault: true
+    },
+    {
+      name: 'Broad Jump',
+      key: 'broadJump',
+      category: 'performance',
+      type: 'distance',
+      unit: 'in',
+      config: {
+        hasSides: false,
+        hasAttempts: true,
+        maxAttempts: 3
+      },
+      isDefault: true
+    },
+    {
+      name: '10-Yard Sprint',
+      key: 'tenYardSprint',
+      category: 'performance',
+      type: 'time',
+      config: {
+        hasSides: false,
+        hasAttempts: true,
+        maxAttempts: 3
+      },
+      isDefault: true
+    },
+  ];
+
+  for (const measurement of defaults) {
+    await this.findOneAndUpdate(
+      { key: measurement.key },
+      measurement,
+      { upsert: true, new: true }
+    );
+  }
+};
+
+const MeasurementType = mongoose.model('MeasurementType', measurementTypeSchema);
+
+module.exports = { MeasurementType };
+
 // Content from: C:\MyPrograms\AthleteDB\server\package.json
 
 {
@@ -5132,15 +6014,44 @@ module.exports = router;
 // Content from: C:\MyPrograms\AthleteDB\server\routes\index.js
 
 // server/routes/index.js
+
 const express = require('express');
 const router = express.Router();
 
 const athleteRoutes = require('./athleteRoutes');
 const assessmentRoutes = require('./assessmentRoutes');
+const measurementTypeRoutes = require('./measurementTypeRoutes');
 
 // Mount routes
 router.use('/athletes', athleteRoutes);
 router.use('/assessments', assessmentRoutes);
+router.use('/measurement-types', measurementTypeRoutes);  // Add this line
+
+module.exports = router;
+
+// Content from: C:\MyPrograms\AthleteDB\server\routes\measurementTypeRoutes.js
+
+// In server/routes/measurementTypeRoutes.js
+
+const express = require('express');
+const router = express.Router();
+const {
+  getMeasurementTypes,
+  createMeasurementType,
+  updateMeasurementType,
+  deleteMeasurementType,
+  reinitializeDefaults
+} = require('../controllers/measurementTypeController');
+
+router.route('/')
+  .get(getMeasurementTypes)
+  .post(createMeasurementType);
+
+router.route('/:id')
+  .put(updateMeasurementType)
+  .delete(deleteMeasurementType);
+
+router.post('/reinitialize-defaults', reinitializeDefaults);
 
 module.exports = router;
 
@@ -5181,9 +6092,19 @@ app.use(cors({
   credentials: true
 }));
 
-// Database connection
+// Database connection and initialization
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB')
-  .then(() => console.log('MongoDB Connected'))
+  .then(async () => {
+    console.log('MongoDB Connected');
+    // Initialize default measurements
+    const { MeasurementType } = require('./models/MeasurementType');
+    try {
+      await MeasurementType.initializeDefaults();
+      console.log('Default measurements initialized');
+    } catch (error) {
+      console.error('Error initializing default measurements:', error);
+    }
+  })
   .catch(err => console.log('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;

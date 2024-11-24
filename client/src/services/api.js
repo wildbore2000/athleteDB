@@ -94,6 +94,34 @@ export const assessmentApi = {
   }
 };
 
+// MeasurementTypes API
+export const measurementTypeApi = {
+  getMeasurementTypes: async (params = {}) => {
+    const response = await api.get('/measurement-types', { params });
+    return response.data;
+  },
+
+  createMeasurementType: async (data) => {
+    const response = await api.post('/measurement-types', data);
+    return response.data;
+  },
+
+  updateMeasurementType: async (id, data) => {
+    const response = await api.put(`/measurement-types/${id}`, data);
+    return response.data;
+  },
+
+  deleteMeasurementType: async (id) => {
+    const response = await api.delete(`/measurement-types/${id}`);
+    return response.data;
+  },
+
+  reinitializeDefaults: async () => {
+    const response = await api.post('/measurement-types/reinitialize-defaults');
+    return response.data;
+  }
+};
+
 // Analytics API
 export const analyticsApi = {
   // Get dashboard statistics

@@ -12,6 +12,7 @@ import { AthleteDetail } from './components/AthleteDetail';
 import AssessmentList from './components/AssessmentList';
 import AssessmentForm from './components/AssessmentForm';
 import AssessmentDetail from './components/AssessmentDetail';
+import MeasurementManager from './components/MeasurementManager';
 
 // Default Mobile Buttons Component for Dashboard
 const DashboardMobileButtons = () => (
@@ -53,6 +54,7 @@ const AppContent = () => {
   return (
     <Layout mobileButtons={getMobileButtons()}>
       <Routes>
+        {/* Dashboard Route */}
         <Route path="/" element={<Dashboard />} />
         
         {/* Athletes Routes */}
@@ -70,7 +72,11 @@ const AppContent = () => {
         <Route path="/athletes/:athleteId/assessments/new" element={<AssessmentForm />} />
         <Route path="/athletes/:athleteId/assessments/:id" element={<AssessmentDetail />} />
         <Route path="/athletes/:athleteId/assessments/:id/edit" element={<AssessmentForm />} />
+        
+        {/* Settings Routes */}
+        <Route path="/settings/measurements" element={<MeasurementManager />} />
 
+        {/* Catch all redirect to dashboard */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Layout>

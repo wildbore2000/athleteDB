@@ -33,9 +33,19 @@ app.use(cors({
   credentials: true
 }));
 
-// Database connection
+// Database connection and initialization
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/athleteDB')
-  .then(() => console.log('MongoDB Connected'))
+  .then(async () => {
+    console.log('MongoDB Connected');
+    // Initialize default measurements
+    const { MeasurementType } = require('./models/MeasurementType');
+    try {
+      await MeasurementType.initializeDefaults();
+      console.log('Default measurements initialized');
+    } catch (error) {
+      console.error('Error initializing default measurements:', error);
+    }
+  })
   .catch(err => console.log('MongoDB connection error:', err));
 
 const PORT = process.env.PORT || 5000;

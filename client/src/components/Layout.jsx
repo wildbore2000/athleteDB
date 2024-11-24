@@ -6,6 +6,7 @@ import {
   Users,
   ClipboardList,
   Menu,
+  Settings,
   X
 } from 'lucide-react';
 import { Button } from './ui/button';
@@ -31,6 +32,11 @@ const mainNav = [
     name: 'Assessments',
     href: '/assessments',
     icon: ClipboardList
+  },
+  {
+    name: 'Measurement Settings',
+    href: '/settings/measurements',
+    icon: Settings
   }
 ];
 

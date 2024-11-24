@@ -26,6 +26,7 @@
             |-- Dashboard.js
             |-- FeetInchesInput.jsx
             |-- Layout.jsx
+            |-- MeasurementManager.jsx
             |-- MovementScreen.jsx
             |-- PerformanceInput.jsx
             |-- PerformanceMeasurements.jsx
@@ -34,6 +35,7 @@
                 |-- alert-dialog.jsx
                 |-- button.jsx
                 |-- card.jsx
+                |-- dialog.jsx
                 |-- input.jsx
                 |-- label.jsx
                 |-- select.jsx
@@ -62,6 +64,7 @@
     |-- controllers
         |-- assessmentController.js
         |-- athleteController.js
+        |-- measurementTypeController.js
         |-- statisticsController.js
     |-- data-chloe.json
     |-- data-grifen.json
@@ -71,9 +74,11 @@
     |-- models
         |-- Assessment.js
         |-- Athlete.js
+        |-- MeasurementType.js
     |-- package.json
     |-- routes
         |-- assessmentRoutes.js
         |-- athleteRoutes.js
         |-- index.js
+        |-- measurementTypeRoutes.js
     |-- server.js
