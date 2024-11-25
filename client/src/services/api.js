@@ -98,7 +98,7 @@ export const assessmentApi = {
 export const measurementTypeApi = {
   getMeasurementTypes: async (params = {}) => {
     const response = await api.get('/measurement-types', { params });
-    return response.data;
+    return response.data.data;
   },
 
   createMeasurementType: async (data) => {

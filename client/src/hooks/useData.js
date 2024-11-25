@@ -1,6 +1,6 @@
 // src/hooks/useData.js
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { athleteApi, assessmentApi, analyticsApi } from '../services/api';
+import { athleteApi, assessmentApi, analyticsApi,measurementTypeApi  } from '../services/api';
 
 // Query Keys
 export const QUERY_KEYS = {
@@ -12,7 +12,8 @@ export const QUERY_KEYS = {
   assessment: 'assessment',
   assessmentStats: 'assessmentStats',
   dashboardStats: 'dashboardStats',
-  performanceTrends: 'performanceTrends'
+  performanceTrends: 'performanceTrends',
+  movementTypes: 'movementTypes'
 };
 
 // Athlete Hooks
@@ -168,5 +169,13 @@ export function useComparativeStats(athleteIds, metrics) {
     queryKey: ['comparativeStats', athleteIds, metrics],
     queryFn: () => analyticsApi.getComparativeStats(athleteIds, metrics),
     enabled: !!athleteIds?.length && !!metrics?.length,
+  });
+}
+
+export function useMovementTypes(params) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.movementTypes, params],
+    queryFn: () => measurementTypeApi.getMeasurementTypes(params),
+    select: (data) => data.data, // Assumes the array is in the 'data' field of the response
   });
 }

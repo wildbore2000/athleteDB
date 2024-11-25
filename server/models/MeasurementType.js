@@ -60,105 +60,117 @@ const measurementTypeSchema = new mongoose.Schema({
 });
 
 // Function to initialize default measurements
+// Update this in server/models/MeasurementType.js
 measurementTypeSchema.statics.initializeDefaults = async function() {
-  const defaults = [
-    // Movement Screen defaults
-    {
-      name: 'Overhead Squat',
-      key: 'overheadSquat',
-      category: 'movementScreen',
-      type: 'score',
-      config: {
-        hasSides: true,
-        minValue: 1,
-        maxValue: 3
+    const defaults = [
+      // Movement Screen defaults
+      {
+        name: 'Overhead Squat',
+        key: 'overheadSquat',
+        category: 'movementScreen',
+        type: 'score',
+        config: {
+          hasSides: true,
+          minValue: 1,
+          maxValue: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: 'Hurdle Step',
-      key: 'hurdleStep',
-      category: 'movementScreen',
-      type: 'score',
-      config: {
-        hasSides: true,
-        minValue: 1,
-        maxValue: 3
+      {
+        name: 'Hurdle Step',
+        key: 'hurdleStep',
+        category: 'movementScreen',
+        type: 'score',
+        config: {
+          hasSides: true,
+          minValue: 1,
+          maxValue: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: "Apley's Scratch",
-      key: 'apleyScratch',
-      category: 'movementScreen',
-      type: 'passfail',
-      config: {
-        hasSides: true
+      {
+        name: 'Inline Lunge',
+        key: 'inlineLunge',
+        category: 'movementScreen',
+        type: 'score',
+        config: {
+          hasSides: true,
+          minValue: 1,
+          maxValue: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: 'Hand Grip',
-      key: 'handGrip',
-      category: 'movementScreen',
-      type: 'strength',
-      unit: 'lbs',
-      config: {
-        hasSides: true
+      {
+        name: "Apley's Scratch",
+        key: 'apleyScratch',
+        category: 'movementScreen',
+        type: 'passfail',
+        config: {
+          hasSides: true
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    
-    // Performance defaults
-    {
-      name: 'Vertical Jump',
-      key: 'verticalJump',
-      category: 'performance',
-      type: 'distance',
-      unit: 'in',
-      config: {
-        hasSides: false,
-        hasAttempts: true,
-        maxAttempts: 3
+      {
+        name: 'Hand Grip',
+        key: 'handGrip',
+        category: 'movementScreen',
+        type: 'strength',
+        unit: 'lbs',
+        config: {
+          hasSides: true
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: 'Broad Jump',
-      key: 'broadJump',
-      category: 'performance',
-      type: 'distance',
-      unit: 'in',
-      config: {
-        hasSides: false,
-        hasAttempts: true,
-        maxAttempts: 3
+      
+      // Performance defaults
+      {
+        name: 'Vertical Jump',
+        key: 'verticalJump',
+        category: 'performance',
+        type: 'distance',
+        unit: 'in',
+        config: {
+          hasSides: false,
+          hasAttempts: true,
+          maxAttempts: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: '10-Yard Sprint',
-      key: 'tenYardSprint',
-      category: 'performance',
-      type: 'time',
-      config: {
-        hasSides: false,
-        hasAttempts: true,
-        maxAttempts: 3
+      {
+        name: 'Broad Jump',
+        key: 'broadJump',
+        category: 'performance',
+        type: 'distance',
+        unit: 'in',
+        config: {
+          hasSides: false,
+          hasAttempts: true,
+          maxAttempts: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-  ];
-
-  for (const measurement of defaults) {
-    await this.findOneAndUpdate(
-      { key: measurement.key },
-      measurement,
-      { upsert: true, new: true }
-    );
-  }
-};
-
+      {
+        name: '10-Yard Sprint',
+        key: 'tenYardSprint',
+        category: 'performance',
+        type: 'time',
+        config: {
+          hasSides: false,
+          hasAttempts: true,
+          maxAttempts: 3
+        },
+        isDefault: true
+      },
+    ];
+  
+    for (const measurement of defaults) {
+      await this.findOneAndUpdate(
+        { key: measurement.key },
+        measurement,
+        { upsert: true, new: true }
+      );
+    }
+  };
 const MeasurementType = mongoose.model('MeasurementType', measurementTypeSchema);
 
 module.exports = { MeasurementType };

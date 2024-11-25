@@ -289,8 +289,10 @@ const MeasurementManager = () => {
     reinitializeMutation.mutate();
   };
 
-  const movementScreens = measurementTypes?.data.filter(m => m.category === 'movementScreen') || [];
-  const performanceMeasures = measurementTypes?.data.filter(m => m.category === 'performance') || [];
+  if (isLoading) return <div>Loading...</div>;
+
+  const movementScreens = measurementTypes?.filter(m => m.category === 'movementScreen') || [];
+  const performanceMeasures = measurementTypes?.filter(m => m.category === 'performance') || [];
 
   return (
     <div className="space-y-6">

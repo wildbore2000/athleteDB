@@ -2,29 +2,64 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { assessmentApi } from '../services/api';
+import { assessmentApi, measurementTypeApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 
-// Change to default export
+const MeasurementDisplay = ({ measurement, value, measurementType }) => {
+  const renderValue = () => {
+    if (measurementType.config.hasSides) {
+      return (
+        <div>
+          <p>Left: {value.scoreLeft || 'N/A'} {measurementType.unit}</p>
+          <p>Right: {value.scoreRight || 'N/A'} {measurementType.unit}</p>
+        </div>
+      );
+    }
+
+    if (measurementType.config.hasAttempts) {
+      return (
+        <div>
+          <p>Best: {value.value} {measurementType.unit}</p>
+          <p className="text-sm text-muted-foreground">
+            Attempts: {value.attempts?.join(', ') || 'N/A'}
+          </p>
+        </div>
+      );
+    }
+
+    return <p>{value.value} {measurementType.unit}</p>;
+  };
+
+  return (
+    <div className="space-y-1">
+      <h3 className="font-medium">{measurementType.name}</h3>
+      {renderValue()}
+      {value.comments && (
+        <p className="text-sm text-muted-foreground">
+          Comments: {value.comments}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export default function AssessmentDetail() {
   const { id, athleteId } = useParams();
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const { data: assessmentData, isLoading, error } = useQuery({
+  // Fetch assessment data
+  const { data: assessmentData, isLoading } = useQuery({
     queryKey: ['assessment', id],
     queryFn: () => assessmentApi.getAssessment(id)
+  });
+
+  // Fetch measurement types
+  const { data: measurementTypes = [] } = useQuery({
+    queryKey: ['measurementTypes'],
+    queryFn: () => measurementTypeApi.getMeasurementTypes()
   });
 
   const handleDelete = async () => {
@@ -41,10 +76,37 @@ export default function AssessmentDetail() {
   };
 
   if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
   if (!assessmentData?.data) return <div>Assessment not found</div>;
 
   const assessment = assessmentData.data;
+
+  // Group measurements by category
+  const groupedMeasurements = React.useMemo(() => {
+    const grouped = {
+      movementScreen: [],
+      performance: []
+    };
+
+    if (assessment.measurements) {
+      // Handle both Map and plain object formats
+      const measurementsEntries = assessment.measurements instanceof Map
+        ? Array.from(assessment.measurements.entries())
+        : Object.entries(assessment.measurements);
+
+      measurementsEntries.forEach(([key, value]) => {
+        const measurementType = measurementTypes.find(m => m.key === key);
+        if (measurementType) {
+          grouped[measurementType.category].push({
+            key,
+            value,
+            type: measurementType
+          });
+        }
+      });
+    }
+
+    return grouped;
+  }, [assessment.measurements, measurementTypes]);
 
   return (
     <>
@@ -108,170 +170,47 @@ export default function AssessmentDetail() {
           </CardContent>
         </Card>
 
-        {/* Movement Screen */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Movement Screen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {assessment.movementScreen && (
-                <>
-                  {/* Overhead Squat */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Overhead Squat</h3>
-                    <p>Left: {assessment.movementScreen.overheadSquat?.scoreLeft || 'N/A'}</p>
-                    <p>Right: {assessment.movementScreen.overheadSquat?.scoreRight || 'N/A'}</p>
-                    {assessment.movementScreen.overheadSquat?.comments && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Comments: {assessment.movementScreen.overheadSquat.comments}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Hurdle Step */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Hurdle Step</h3>
-                    <p>Left: {assessment.movementScreen.hurdleStep?.scoreLeft || 'N/A'}</p>
-                    <p>Right: {assessment.movementScreen.hurdleStep?.scoreRight || 'N/A'}</p>
-                    {assessment.movementScreen.hurdleStep?.comments && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Comments: {assessment.movementScreen.hurdleStep.comments}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Inline Lunge */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Inline Lunge</h3>
-                    <p>Left: {assessment.movementScreen.inlineLunge?.scoreLeft || 'N/A'}</p>
-                    <p>Right: {assessment.movementScreen.inlineLunge?.scoreRight || 'N/A'}</p>
-                    {assessment.movementScreen.inlineLunge?.comments && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Comments: {assessment.movementScreen.inlineLunge.comments}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Apley's Scratch */}
-                  <div>
-                    <h3 className="font-semibold mb-2">Apley's Scratch</h3>
-                    <p>Left: {assessment.movementScreen.apleyScratch?.scoreLeft || 'N/A'}</p>
-                    <p>Right: {assessment.movementScreen.apleyScratch?.scoreRight || 'N/A'}</p>
-                    {assessment.movementScreen.apleyScratch?.comments && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Comments: {assessment.movementScreen.apleyScratch.comments}
-                      </p>
-                    )}
-                  </div>
-                  {/* Hand Grip */}
-<div>
-  <h3 className="font-semibold mb-2">Hand Grip</h3>
-  <p>Left: {assessment.movementScreen.handGrip?.scoreLeft || 'N/A'} lbs</p>
-  <p>Right: {assessment.movementScreen.handGrip?.scoreRight || 'N/A'} lbs</p>
-  {assessment.movementScreen.handGrip?.comments && (
-    <p className="text-sm text-gray-600 mt-1">
-      Comments: {assessment.movementScreen.handGrip.comments}
-    </p>
-  )}
-</div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Movement Screen Measurements */}
+        {groupedMeasurements.movementScreen.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Movement Screen</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {groupedMeasurements.movementScreen.map(({ key, value, type }) => (
+                  <MeasurementDisplay
+                    key={key}
+                    measurement={key}
+                    value={value}
+                    measurementType={type}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Performance Measurements */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Measurements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {assessment.performance && (
-                <>
-                  {/* Jumps */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Jump Tests</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="font-medium">Vertical Jump</p>
-                        <p>Best: {assessment.performance.verticalJump?.value || 'N/A'}"</p>
-                        <p className="text-sm text-gray-600">
-                          Attempts: {assessment.performance.verticalJump?.attempts?.join('", ')}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Broad Jump</p>
-                        <p>Best: {assessment.performance.broadJump?.value || 'N/A'}"</p>
-                        <p className="text-sm text-gray-600">
-                          Attempts: {assessment.performance.broadJump?.attempts?.join('", ')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sprint */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Sprint Test</h3>
-                    <p>Best: {assessment.performance.tenYardSprint?.value || 'N/A'}s</p>
-                    <p className="text-sm text-gray-600">
-                      Attempts: {assessment.performance.tenYardSprint?.attempts?.join('s, ')}
-                    </p>
-                  </div>
-
-                  {/* Medicine Ball Tests */}
-                  <div>
-                    <h3 className="font-semibold mb-3">Medicine Ball Tests</h3>
-                    <div className="space-y-2">
-                      <div>
-                        <p className="font-medium">OH MB Throw</p>
-                        <p>Best: {assessment.performance.ohmbThrow?.value || 'N/A'}"</p>
-                        <p className="text-sm text-gray-600">
-                          Attempts: {assessment.performance.ohmbThrow?.attempts?.join('", ')}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium">MB Shotput</p>
-                        <p>Best: {assessment.performance.mbShotput?.value || 'N/A'}"</p>
-                        <p className="text-sm text-gray-600">
-                          Attempts: {assessment.performance.mbShotput?.attempts?.join('", ')}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium">MB Lead Arm</p>
-                        <p>Best: {assessment.performance.mbLeadArm?.value || 'N/A'}"</p>
-                        <p className="text-sm text-gray-600">
-                          Attempts: {assessment.performance.mbLeadArm?.attempts?.join('", ')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-{/* Add to Performance Measurements section */}
-<div>
-  <h3 className="font-semibold mb-3">Strength Tests</h3>
-  <div className="space-y-2">
-    <div>
-      <p className="font-medium">Pull Ups</p>
-      <p>Best: {assessment.performance.pullUps?.value || 'N/A'} reps</p>
-      <p className="text-sm text-gray-600">
-        Attempts: {assessment.performance.pullUps?.attempts?.join(', ')}
-      </p>
-    </div>
-    <div>
-      <p className="font-medium">Mid Thigh Pull</p>
-      <p>Best: {assessment.performance.midThighPull?.value || 'N/A'} lbs</p>
-      <p className="text-sm text-gray-600">
-        Attempts: {assessment.performance.midThighPull?.attempts?.join(', ')}
-      </p>
-    </div>
-  </div>
-</div>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {groupedMeasurements.performance.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance Measurements</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {groupedMeasurements.performance.map(({ key, value, type }) => (
+                  <MeasurementDisplay
+                    key={key}
+                    measurement={key}
+                    value={value}
+                    measurementType={type}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* General Comments */}
         {assessment.generalComments && (

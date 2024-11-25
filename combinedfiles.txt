@@ -642,7 +642,6 @@ export default function AssessmentDetail() {
 
 // Content from: C:\MyPrograms\AthleteDB\client\src\components\AssessmentForm.jsx
 
-// src/components/AssessmentForm.jsx
 import React, { useState, useEffect } from 'react';
 import { Search, X } from 'lucide-react'; 
 import { useForm } from 'react-hook-form';
@@ -704,7 +703,12 @@ export default function AssessmentForm() {
   });
 
   // Form setup
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+    defaultValues: assessmentData?.data || {
+      movementScreen: {},
+      performance: {}
+    }
+  });
 
   // Mutations
   const createMutation = useMutation({
@@ -755,7 +759,9 @@ export default function AssessmentForm() {
       'tenYardSprint',
       'ohmbThrow',
       'mbShotput',
-      'mbLeadArm'
+      'mbLeadArm',
+      'pullUps',
+      'midThighPull'
     ];
 
     performanceFields.forEach(field => {
@@ -909,7 +915,11 @@ export default function AssessmentForm() {
         </Card>
 
         {/* Movement Screen */}
-        <MovementScreen register={register} />
+        <MovementScreen 
+          register={register} 
+          watch={watch}
+          setValue={setValue}
+        />
 
         {/* Performance Measurements */}
         <Card>
@@ -2610,8 +2620,10 @@ const MeasurementManager = () => {
     reinitializeMutation.mutate();
   };
 
-  const movementScreens = measurementTypes?.data.filter(m => m.category === 'movementScreen') || [];
-  const performanceMeasures = measurementTypes?.data.filter(m => m.category === 'performance') || [];
+  if (isLoading) return <div>Loading...</div>;
+
+  const movementScreens = measurementTypes?.filter(m => m.category === 'movementScreen') || [];
+  const performanceMeasures = measurementTypes?.filter(m => m.category === 'performance') || [];
 
   return (
     <div className="space-y-6">
@@ -2817,92 +2829,159 @@ export default MeasurementManager;
 
 // Content from: C:\MyPrograms\AthleteDB\client\src\components\MovementScreen.jsx
 
-// src/components/MovementScreen.jsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Button } from './ui/button';
+import { useMovementTypes } from '../hooks/useData';
+import { Plus, X } from 'lucide-react';
 
-const MovementScreen = ({ register }) => {
-  const movements = [
-    { 
-      name: "Overhead Squat", 
-      key: "overheadSquat", 
-      type: "score" 
-    },
-    { 
-      name: "Hurdle Step", 
-      key: "hurdleStep", 
-      type: "score" 
-    },
-    { 
-      name: "Inline Lunge", 
-      key: "inlineLunge", 
-      type: "score" 
-    },
-    { 
-      name: "Apley's Scratch", 
-      key: "apleyScratch", 
-      type: "passfail" 
-    },
-    { 
-      name: "Hand Grip", 
-      key: "handGrip", 
-      type: "strength" 
+const MovementScreen = ({ register, watch, setValue }) => {
+  const { data: allMovementTypes = [] } = useMovementTypes({
+    category: 'movementScreen',
+  });
+  
+  // State to track additional movements
+  const [selectedMovements, setSelectedMovements] = React.useState([]);
+  
+  // Watch the entire movementScreen object to track changes
+  const movementScreenValues = watch('movementScreen') || {};
+  
+  // Filter default movements that should always show
+  const defaultMovements = React.useMemo(() => 
+    allMovementTypes.filter(mt => mt.isDefault || (movementScreenValues && movementScreenValues[mt.key])),
+    [allMovementTypes, movementScreenValues]
+  );
+  
+  // Filter available movements for selection
+  const availableMovements = React.useMemo(() => 
+    allMovementTypes.filter(mt => 
+      !mt.isDefault && 
+      !defaultMovements.find(dm => dm.key === mt.key) &&
+      !selectedMovements.includes(mt.key)
+    ),
+    [allMovementTypes, defaultMovements, selectedMovements]
+  );
+
+  // Effect to initialize form data for default movements
+  useEffect(() => {
+    defaultMovements.forEach(movement => {
+      if (!movementScreenValues[movement.key]) {
+        setValue(`movementScreen.${movement.key}`, {
+          scoreLeft: null,
+          scoreRight: null,
+          comments: ''
+        });
+      }
+    });
+  }, [defaultMovements, setValue]);
+
+  const handleAddMovement = (e) => {
+    e.preventDefault();
+    setSelectedMovements(prev => [...prev, null]);
+  };
+
+  const handleMovementSelect = (movement) => {
+    if (movement) {
+      setSelectedMovements(prev => [...prev, movement.key]);
+      // Initialize the form data for the new movement
+      setValue(`movementScreen.${movement.key}`, {
+        scoreLeft: null,
+        scoreRight: null,
+        comments: ''
+      });
     }
-  ];
+  };
 
-  const renderScoreInput = (movement, side) => {
-    const fieldName = `movementScreen.${movement.key}.score${side}`;
+  const handleRemoveMovement = (indexToRemove, movementKey) => {
+    setSelectedMovements(prev => prev.filter((_, index) => index !== indexToRemove));
+    // Remove the data from the form
+    const newMovementScreen = { ...movementScreenValues };
+    delete newMovementScreen[movementKey];
+    setValue('movementScreen', newMovementScreen);
+  };
+
+  const renderScoreInput = (movementType, side) => {
+    if (!movementType) return null;
+  
+    const fieldName = `movementScreen.${movementType.key}.score${side}`;
     
-    if (movement.type === 'strength') {
-      return (
-        <Input
-          type="number"
-          className="w-20"
-          placeholder="lbs"
-          {...register(fieldName)}
-        />
-      );
-    } else if (movement.type === 'score') {
-      return (
-        <Input
-          type="number"
-          min="1"
-          max="3"
-          className="w-20"
-          {...register(fieldName)}
-        />
-      );
-    } else {
-      return (
-        <Select
-          onValueChange={(value) => register(fieldName).onChange({ target: { value }})}
-          {...register(fieldName)}
-        >
-          <SelectTrigger className="w-20">
-            <SelectValue placeholder="--" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">--</SelectItem>
-            <SelectItem value="pass">Pass</SelectItem>
-            <SelectItem value="fail">Fail</SelectItem>
-          </SelectContent>
-        </Select>
-      );
+    switch (movementType.type) {
+      case 'strength':
+        return (
+          <div className="flex items-center">
+            <Input
+              type="number"
+              className="w-20"
+              placeholder={movementType.unit}
+              {...register(fieldName)}
+            />
+            <span className="ml-1 text-sm text-muted-foreground">{movementType.unit}</span>
+          </div>
+        );
+      case 'score':
+        return (
+          <Select
+            value={String(watch(fieldName) || "none")}
+            onValueChange={(value) => {
+              setValue(fieldName, value === "none" ? null : parseInt(value, 10));
+            }}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue placeholder="--" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">--</SelectItem>
+              <SelectItem value="1">1</SelectItem>
+              <SelectItem value="2">2</SelectItem>
+              <SelectItem value="3">3</SelectItem>
+            </SelectContent>
+          </Select>
+        );
+      case 'passfail':
+        return (
+          <Select
+            value={watch(fieldName) || "none"}
+            onValueChange={(value) => {
+              setValue(fieldName, value === "none" ? null : value);
+            }}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue placeholder="--" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">--</SelectItem>
+              <SelectItem value="pass">Pass</SelectItem>
+              <SelectItem value="fail">Fail</SelectItem>
+            </SelectContent>
+          </Select>
+        );
+      default:
+        return null;
     }
+  };
+
+  // Find movement type by key
+  const getMovementByKey = (key) => {
+    return allMovementTypes.find(mt => mt.key === key);
   };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Movement Screen</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Movement Screen</CardTitle>
+          <Button 
+            onClick={handleAddMovement} 
+            type="button"
+            variant="outline"
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Movement
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="relative overflow-x-auto">
@@ -2913,39 +2992,113 @@ const MovementScreen = ({ register }) => {
                 <th className="px-6 py-3 text-center">Left Side</th>
                 <th className="px-6 py-3 text-center">Right Side</th>
                 <th className="px-6 py-3">Comments</th>
+                <th className="px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {movements.map((movement) => (
-                <tr key={movement.name} className="bg-white">
+              {/* Default Movements */}
+              {defaultMovements.map((movementType) => (
+                <tr key={movementType._id} className="bg-white">
                   <td className="px-6 py-4 font-medium">
-                    {movement.name}
-                    {movement.type === 'score' && (
-                      <span className="text-xs text-gray-500 ml-1">(1-3)</span>
-                    )}
-                    {movement.type === 'strength' && (
-                      <span className="text-xs text-gray-500 ml-1">(lbs)</span>
+                    {movementType.name}
+                    {movementType.unit && (
+                      <span className="text-xs text-gray-500 ml-1">({movementType.unit})</span>
                     )}
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">
-                      {renderScoreInput(movement, 'Left')}
+                      {renderScoreInput(movementType, 'Left')}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <div className="flex justify-center">
-                      {renderScoreInput(movement, 'Right')}
+                      {renderScoreInput(movementType, 'Right')}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <Input
                       type="text"
                       placeholder="Add comments..."
-                      {...register(`movementScreen.${movement.key}.comments`)}
+                      {...register(`movementScreen.${movementType.key}.comments`)}
                     />
                   </td>
+                  <td className="px-6 py-4"></td>
                 </tr>
               ))}
+
+              {/* Selected Movements */}
+              {selectedMovements.map((movementKey, index) => {
+                const movementType = movementKey ? getMovementByKey(movementKey) : null;
+                return (
+                  <tr key={index} className="bg-white">
+                    <td className="px-6 py-4 font-medium">
+                      {movementType ? (
+                        <div>
+                          {movementType.name}
+                          {movementType.unit && (
+                            <span className="text-xs text-gray-500 ml-1">({movementType.unit})</span>
+                          )}
+                        </div>
+                      ) : (
+                        <Select
+                          value="none"
+                          onValueChange={(value) => {
+                            if (value !== "none") {
+                              const selectedMovement = availableMovements.find(m => m._id === value);
+                              if (selectedMovement) {
+                                handleMovementSelect(selectedMovement);
+                              }
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select movement" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select movement</SelectItem>
+                            {availableMovements.map((mt) => (
+                              <SelectItem key={mt._id} value={mt._id}>
+                                {mt.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center">
+                        {movementType && renderScoreInput(movementType, 'Left')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex justify-center">
+                        {movementType && renderScoreInput(movementType, 'Right')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {movementType && (
+                        <Input
+                          type="text"
+                          placeholder="Add comments..."
+                          {...register(`movementScreen.${movementType.key}.comments`)}
+                        />
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {movementType && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleRemoveMovement(index, movementType.key)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -3818,7 +3971,7 @@ export {
 
 // src/hooks/useData.js
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { athleteApi, assessmentApi, analyticsApi } from '../services/api';
+import { athleteApi, assessmentApi, analyticsApi,measurementTypeApi  } from '../services/api';
 
 // Query Keys
 export const QUERY_KEYS = {
@@ -3830,7 +3983,8 @@ export const QUERY_KEYS = {
   assessment: 'assessment',
   assessmentStats: 'assessmentStats',
   dashboardStats: 'dashboardStats',
-  performanceTrends: 'performanceTrends'
+  performanceTrends: 'performanceTrends',
+  movementTypes: 'movementTypes'
 };
 
 // Athlete Hooks
@@ -3986,6 +4140,13 @@ export function useComparativeStats(athleteIds, metrics) {
     queryKey: ['comparativeStats', athleteIds, metrics],
     queryFn: () => analyticsApi.getComparativeStats(athleteIds, metrics),
     enabled: !!athleteIds?.length && !!metrics?.length,
+  });
+}
+
+export function useMovementTypes(params) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.movementTypes, params],
+    queryFn: () => measurementTypeApi.getMeasurementTypes(params),
   });
 }
 
@@ -4238,7 +4399,7 @@ export const assessmentApi = {
 export const measurementTypeApi = {
   getMeasurementTypes: async (params = {}) => {
     const response = await api.get('/measurement-types', { params });
-    return response.data;
+    return response.data.data;
   },
 
   createMeasurementType: async (data) => {
@@ -5823,105 +5984,117 @@ const measurementTypeSchema = new mongoose.Schema({
 });
 
 // Function to initialize default measurements
+// Update this in server/models/MeasurementType.js
 measurementTypeSchema.statics.initializeDefaults = async function() {
-  const defaults = [
-    // Movement Screen defaults
-    {
-      name: 'Overhead Squat',
-      key: 'overheadSquat',
-      category: 'movementScreen',
-      type: 'score',
-      config: {
-        hasSides: true,
-        minValue: 1,
-        maxValue: 3
+    const defaults = [
+      // Movement Screen defaults
+      {
+        name: 'Overhead Squat',
+        key: 'overheadSquat',
+        category: 'movementScreen',
+        type: 'score',
+        config: {
+          hasSides: true,
+          minValue: 1,
+          maxValue: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: 'Hurdle Step',
-      key: 'hurdleStep',
-      category: 'movementScreen',
-      type: 'score',
-      config: {
-        hasSides: true,
-        minValue: 1,
-        maxValue: 3
+      {
+        name: 'Hurdle Step',
+        key: 'hurdleStep',
+        category: 'movementScreen',
+        type: 'score',
+        config: {
+          hasSides: true,
+          minValue: 1,
+          maxValue: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: "Apley's Scratch",
-      key: 'apleyScratch',
-      category: 'movementScreen',
-      type: 'passfail',
-      config: {
-        hasSides: true
+      {
+        name: 'Inline Lunge',
+        key: 'inlineLunge',
+        category: 'movementScreen',
+        type: 'score',
+        config: {
+          hasSides: true,
+          minValue: 1,
+          maxValue: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: 'Hand Grip',
-      key: 'handGrip',
-      category: 'movementScreen',
-      type: 'strength',
-      unit: 'lbs',
-      config: {
-        hasSides: true
+      {
+        name: "Apley's Scratch",
+        key: 'apleyScratch',
+        category: 'movementScreen',
+        type: 'passfail',
+        config: {
+          hasSides: true
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    
-    // Performance defaults
-    {
-      name: 'Vertical Jump',
-      key: 'verticalJump',
-      category: 'performance',
-      type: 'distance',
-      unit: 'in',
-      config: {
-        hasSides: false,
-        hasAttempts: true,
-        maxAttempts: 3
+      {
+        name: 'Hand Grip',
+        key: 'handGrip',
+        category: 'movementScreen',
+        type: 'strength',
+        unit: 'lbs',
+        config: {
+          hasSides: true
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: 'Broad Jump',
-      key: 'broadJump',
-      category: 'performance',
-      type: 'distance',
-      unit: 'in',
-      config: {
-        hasSides: false,
-        hasAttempts: true,
-        maxAttempts: 3
+      
+      // Performance defaults
+      {
+        name: 'Vertical Jump',
+        key: 'verticalJump',
+        category: 'performance',
+        type: 'distance',
+        unit: 'in',
+        config: {
+          hasSides: false,
+          hasAttempts: true,
+          maxAttempts: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-    {
-      name: '10-Yard Sprint',
-      key: 'tenYardSprint',
-      category: 'performance',
-      type: 'time',
-      config: {
-        hasSides: false,
-        hasAttempts: true,
-        maxAttempts: 3
+      {
+        name: 'Broad Jump',
+        key: 'broadJump',
+        category: 'performance',
+        type: 'distance',
+        unit: 'in',
+        config: {
+          hasSides: false,
+          hasAttempts: true,
+          maxAttempts: 3
+        },
+        isDefault: true
       },
-      isDefault: true
-    },
-  ];
-
-  for (const measurement of defaults) {
-    await this.findOneAndUpdate(
-      { key: measurement.key },
-      measurement,
-      { upsert: true, new: true }
-    );
-  }
-};
-
+      {
+        name: '10-Yard Sprint',
+        key: 'tenYardSprint',
+        category: 'performance',
+        type: 'time',
+        config: {
+          hasSides: false,
+          hasAttempts: true,
+          maxAttempts: 3
+        },
+        isDefault: true
+      },
+    ];
+  
+    for (const measurement of defaults) {
+      await this.findOneAndUpdate(
+        { key: measurement.key },
+        measurement,
+        { upsert: true, new: true }
+      );
+    }
+  };
 const MeasurementType = mongoose.model('MeasurementType', measurementTypeSchema);
 
 module.exports = { MeasurementType };
@@ -6032,8 +6205,8 @@ module.exports = router;
 // Content from: C:\MyPrograms\AthleteDB\server\routes\measurementTypeRoutes.js
 
 // In server/routes/measurementTypeRoutes.js
-
 const express = require('express');
+
 const router = express.Router();
 const {
   getMeasurementTypes,
@@ -6042,6 +6215,8 @@ const {
   deleteMeasurementType,
   reinitializeDefaults
 } = require('../controllers/measurementTypeController');
+
+router.get('/', getMeasurementTypes);
 
 router.route('/')
   .get(getMeasurementTypes)

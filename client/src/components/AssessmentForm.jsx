@@ -1,43 +1,158 @@
 // src/components/AssessmentForm.jsx
-import React, { useState, useEffect } from 'react';
-import { Search, X } from 'lucide-react'; 
-import { useForm } from 'react-hook-form';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { assessmentApi, athleteApi } from '../services/api';
+import { useQuery } from '@tanstack/react-query';
+import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
-import { Label } from './ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import PerformanceMeasurements from './PerformanceMeasurements';
-import MovementScreen from './MovementScreen';
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from "./ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Plus, X } from "lucide-react";
+import { assessmentApi, athleteApi, measurementTypeApi } from '../services/api';
+
+const MeasurementRow = ({ measurement, register, watch, setValue, onRemove }) => {
+  // Helper function to render score/value input based on type
+  const renderValueInput = (side = null) => {
+    const fieldName = side 
+      ? `measurements.${measurement.key}.score${side}` 
+      : `measurements.${measurement.key}.value`;
+
+    switch (measurement.type) {
+      case 'score':
+        return (
+          <Select
+            value={String(watch(fieldName) || "none")}
+            onValueChange={(value) => setValue(fieldName, value === "none" ? null : parseInt(value))}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue placeholder="--" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">--</SelectItem>
+              <SelectItem value="1">1</SelectItem>
+              <SelectItem value="2">2</SelectItem>
+              <SelectItem value="3">3</SelectItem>
+            </SelectContent>
+          </Select>
+        );
+      
+      case 'passfail':
+        return (
+          <Select
+            value={watch(fieldName) || "none"}
+            onValueChange={(value) => setValue(fieldName, value === "none" ? null : value)}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue placeholder="--" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">--</SelectItem>
+              <SelectItem value="pass">Pass</SelectItem>
+              <SelectItem value="fail">Fail</SelectItem>
+            </SelectContent>
+          </Select>
+        );
+      
+      default:
+        return (
+          <Input
+            type="number"
+            step="0.1"
+            {...register(fieldName)}
+            className="w-24"
+            placeholder={measurement.unit}
+          />
+        );
+    }
+  };
+
+  const renderAttempts = () => {
+    if (!measurement.config.hasAttempts) return null;
+    
+    return (
+      <div className="flex gap-2">
+        {Array.from({ length: measurement.config.maxAttempts }).map((_, index) => (
+          <Input
+            key={index}
+            type="number"
+            step="0.1"
+            className="w-20"
+            {...register(`measurements.${measurement.key}.attempts.${index}`)}
+            placeholder={`#${index + 1}`}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <tr>
+      <td className="border p-2">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{measurement.name}</span>
+          {!measurement.isDefault && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onRemove}
+              className="p-0 h-6 w-6"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {measurement.unit}
+        </span>
+      </td>
+      
+      {measurement.config.hasSides ? (
+        <>
+          <td className="border p-2 text-center">
+            {renderValueInput('Left')}
+          </td>
+          <td className="border p-2 text-center">
+            {renderValueInput('Right')}
+          </td>
+          <td className="border p-2" colSpan={measurement.config.hasAttempts ? 2 : 1}>
+            <Input
+              {...register(`measurements.${measurement.key}.comments`)}
+              placeholder="Comments"
+            />
+          </td>
+        </>
+      ) : (
+        <>
+          <td className="border p-2 text-center">
+            {renderValueInput()}
+          </td>
+          <td className="border p-2" colSpan={2}>
+            {renderAttempts()}
+          </td>
+          <td className="border p-2">
+            <Input
+              {...register(`measurements.${measurement.key}.comments`)}
+              placeholder="Comments"
+            />
+          </td>
+        </>
+      )}
+    </tr>
+  );
+};
 
 export default function AssessmentForm() {
   const { id, athleteId } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [showMissingFields, setShowMissingFields] = useState(false);
-  const [missingFields, setMissingFields] = useState([]);
-  const [submissionData, setSubmissionData] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [selectedMeasurements, setSelectedMeasurements] = useState(new Set());
+
+  // Fetch measurement types
+  const { data: measurementTypes = [] } = useQuery({
+    queryKey: ['measurementTypes'],
+    queryFn: () => measurementTypeApi.getMeasurementTypes()
+  });
+
   // Fetch assessment data if editing
   const { data: assessmentData, isLoading: isLoadingAssessment } = useQuery({
     queryKey: ['assessment', id],
@@ -45,295 +160,250 @@ export default function AssessmentForm() {
     enabled: !!id
   });
 
-  // Fetch athlete data for the header
-  const { data: athleteData, isLoading: isLoadingAthlete } = useQuery({
-    queryKey: ['athlete', athleteId],
-    queryFn: () => athleteApi.getAthlete(athleteId),
-    enabled: !!athleteId
-  });
-
-  // Fetch athletes for dropdown if not in athlete-specific context
-  const { data: athletesData, isLoading: isLoadingAthletes } = useQuery({
-    queryKey: ['athletes'],
-    queryFn: () => athleteApi.getAthletes({ limit: 1000 }), // Increase limit to get all athletes
-    enabled: !athleteId // Only fetch if not in athlete-specific context
-  });
-
   // Form setup
-  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm();
-
-  // Mutations
-  const createMutation = useMutation({
-    mutationFn: (data) => assessmentApi.createAssessment(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries('assessments');
-      if (athleteId) {
-        navigate(`/athletes/${athleteId}/assessments`);
-      } else {
-        navigate('/assessments');
-      }
+  const { register, handleSubmit, watch, setValue, reset } = useForm({
+    defaultValues: {
+      measurements: {},
+      assessmentDate: new Date().toISOString().split('T')[0],
+      generalComments: ''
     }
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => assessmentApi.updateAssessment(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries('assessments');
-      if (athleteId) {
-        navigate(`/athletes/${athleteId}/assessments`);
-      } else {
-        navigate('/assessments');
-      }
-    }
-  });
-
-  // Initialize form when data is loaded
+  // Initialize form with assessment data when editing
   useEffect(() => {
     if (assessmentData?.data) {
-      const formData = {
-        ...assessmentData.data,
-        assessmentDate: new Date(assessmentData.data.assessmentDate).toISOString().split('T')[0]
-      };
-      reset(formData);
+      const assessment = assessmentData.data;
+      
+      // Format date to YYYY-MM-DD
+      const formattedDate = new Date(assessment.assessmentDate)
+        .toISOString()
+        .split('T')[0];
+
+      // Convert measurements Map to object if needed
+      const measurementsData = assessment.measurements instanceof Map 
+        ? Object.fromEntries(assessment.measurements)
+        : assessment.measurements || {};
+
+      // Set form data
+      reset({
+        assessmentDate: formattedDate,
+        generalComments: assessment.generalComments || '',
+        measurements: measurementsData
+      });
+
+      // Update selected measurements
+      if (measurementsData) {
+        setSelectedMeasurements(new Set([
+          ...Array.from(selectedMeasurements),
+          ...Object.keys(measurementsData)
+        ]));
+      }
+
+      console.log('Loaded measurements:', measurementsData); // Debug log
     }
   }, [assessmentData, reset]);
 
-  const checkMissingFields = (data) => {
-    const missing = [];
+  // Add default measurements initially
+  useEffect(() => {
+    const defaults = measurementTypes.filter(m => m.isDefault);
+    setSelectedMeasurements(new Set(defaults.map(m => m.key)));
+  }, [measurementTypes]);
 
-    if (!data.assessmentDate) missing.push('Assessment Date');
-    if (!athleteId && !data.athlete) missing.push('Athlete');
+  const handleAddMeasurement = (measurementKey) => {
+    setSelectedMeasurements(prev => new Set([...prev, measurementKey]));
+  };
 
-    // Check if any performance measurement is partially filled
-    const performanceFields = [
-      'verticalJump',
-      'broadJump',
-      'tenYardSprint',
-      'ohmbThrow',
-      'mbShotput',
-      'mbLeadArm'
-    ];
-
-    performanceFields.forEach(field => {
-      const measurement = data.performance?.[field];
-      if (measurement) {
-        const hasAttempts = measurement.attempts?.some(a => a != null);
-        if (hasAttempts && !measurement.value) {
-          missing.push(`${field} best value`);
-        }
-      }
-    });
-
-    return missing;
+  const handleRemoveMeasurement = (measurementKey) => {
+    const newSelected = new Set(selectedMeasurements);
+    newSelected.delete(measurementKey);
+    setSelectedMeasurements(newSelected);
+    setValue(`measurements.${measurementKey}`, undefined);
   };
 
   const onSubmit = async (data) => {
-    // Prepare submission data
-    const formData = {
-      ...data,
-      athlete: athleteId || data.athlete,
-      assessmentDate: new Date(data.assessmentDate).toISOString()
-    };
-
-    const missing = checkMissingFields(formData);
-    if (missing.length > 0) {
-      setMissingFields(missing);
-      setSubmissionData(formData);
-      setShowMissingFields(true);
-      return;
-    }
-
     try {
+      // Filter out empty measurements and format the data
+      const measurements = Object.entries(data.measurements)
+        .filter(([key]) => selectedMeasurements.has(key))
+        .reduce((acc, [key, value]) => {
+          // Remove any empty or undefined values
+          const cleanedValue = Object.entries(value).reduce((obj, [k, v]) => {
+            if (v !== undefined && v !== '' && v !== null) {
+              obj[k] = v;
+            }
+            return obj;
+          }, {});
+          
+          // Only include the measurement if it has actual data
+          if (Object.keys(cleanedValue).length > 0) {
+            acc[key] = cleanedValue;
+          }
+          return acc;
+        }, {});
+
+      const formData = {
+        ...data,
+        athlete: athleteId,
+        measurements
+      };
+
+      console.log('Submitting data:', formData); // Debug log
+
       if (id) {
-        await updateMutation.mutateAsync({ id, data: formData });
+        await assessmentApi.updateAssessment(id, formData);
       } else {
-        await createMutation.mutateAsync(formData);
+        await assessmentApi.createAssessment(formData);
+      
+      navigate(athleteId ? `/athletes/${athleteId}/assessments` : '/assessments');
       }
     } catch (error) {
       console.error('Error saving assessment:', error);
     }
   };
 
-  if (isLoadingAssessment || isLoadingAthletes || isLoadingAthlete) return <div>Loading...</div>;
+  // Group measurements by category
+  const groupedMeasurements = React.useMemo(() => {
+    const grouped = {
+      movementScreen: [],
+      performance: []
+    };
+
+    Array.from(selectedMeasurements).forEach(key => {
+      const measurementType = measurementTypes.find(m => m.key === key);
+      if (measurementType) {
+        grouped[measurementType.category].push(measurementType);
+      }
+    });
+
+    return grouped;
+  }, [selectedMeasurements, measurementTypes]);
+
+  if (id && isLoadingAssessment) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Athlete Header */}
-      {athleteId && athleteData?.data && (
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">{athleteData.data.name}</h1>
-            <p className="text-muted-foreground">
-              Height: {athleteData.data.height?.value || 'N/A'}" | 
-              Weight: {athleteData.data.weight?.value || 'N/A'} lbs | 
-              Age: {athleteData.data.age || 'N/A'}
-            </p>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Basic Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Assessment Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-between gap-4">
+            <div className="flex-1">
+              <Input
+                type="date"
+                {...register('assessmentDate')}
+                required
+              />
+            </div>
+            <div>
+              <Select onValueChange={handleAddMeasurement}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Add Measurement" />
+                </SelectTrigger>
+                <SelectContent>
+                  {measurementTypes
+                    .filter(m => !selectedMeasurements.has(m.key))
+                    .map(m => (
+                      <SelectItem key={m.key} value={m.key}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
-      )}
+        </CardContent>
+      </Card>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Basic Information */}
+      {/* Movement Screen */}
+      {groupedMeasurements.movementScreen.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>{id ? 'Edit' : 'New'} Assessment</CardTitle>
+            <CardTitle>Movement Screen</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Athlete Selection - Only show if not in athlete-specific context */}
-              {!athleteId && (
-                <div>
-                  <Label>Athlete *</Label>
-                  <Select 
-                    onValueChange={(value) => setValue('athlete', value)}
-                    defaultValue={watch('athlete')}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an athlete" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[500px]">
-                      <div className="sticky top-0 bg-background p-2 z-10 border-b">
-                        <div className="relative">
-                          <Search className="absolute left-2 top-2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                          <Input
-                            placeholder="Search athletes..."
-                            className="h-8 pl-8"
-                            onKeyDown={(e) => e.stopPropagation()}
-                            value={searchTerm}
-                            onChange={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSearchTerm(e.target.value);
-                            }}
-                          />
-                          {searchTerm && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="absolute right-1 top-1 h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setSearchTerm('');
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                      <div className="max-h-[300px] overflow-y-auto">
-                        {athletesData?.data
-                          .filter(athlete => 
-                            athlete.name.toLowerCase().includes(searchTerm.toLowerCase())
-                          )
-                          .map((athlete) => (
-                          <SelectItem 
-                            key={athlete._id} 
-                            value={athlete._id}
-                          >
-                            <div className="flex flex-col">
-                              <span>{athlete.name}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {athlete.age ? `Age: ${athlete.age}` : ''} 
-                                {athlete.height?.value ? ` | Height: ${athlete.height.value}"` : ''}
-                              </span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </div>
-                    </SelectContent>
-                  </Select>
-                  {errors.athlete && (
-                    <span className="text-red-500 text-sm">{errors.athlete.message}</span>
-                  )}
-                </div>
-              )}
-
-              <div>
-                <Label>Assessment Date *</Label>
-                <Input 
-                  type="date" 
-                  {...register("assessmentDate", { required: "Assessment date is required" })}
-                />
-                {errors.assessmentDate && (
-                  <span className="text-red-500 text-sm">{errors.assessmentDate.message}</span>
-                )}
-              </div>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border p-2 text-left">Movement</th>
+                    <th className="border p-2">Left Side</th>
+                    <th className="border p-2">Right Side</th>
+                    <th className="border p-2">Comments</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupedMeasurements.movementScreen.map(measurement => (
+                    <MeasurementRow
+                      key={measurement.key}
+                      measurement={measurement}
+                      register={register}
+                      watch={watch}
+                      setValue={setValue}
+                      onRemove={() => handleRemoveMeasurement(measurement.key)}
+                    />
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* Movement Screen */}
-        <MovementScreen register={register} />
-
-        {/* Performance Measurements */}
+      {/* Performance Measurements */}
+      {groupedMeasurements.performance.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Performance Measurements</CardTitle>
           </CardHeader>
           <CardContent>
-            <PerformanceMeasurements 
-              register={register} 
-              watch={watch} 
-              setValue={setValue}
-            />
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr>
+                    <th className="border p-2 text-left">Measurement</th>
+                    <th className="border p-2">Best</th>
+                    <th className="border p-2" colSpan={2}>Attempts</th>
+                    <th className="border p-2">Comments</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupedMeasurements.performance.map(measurement => (
+                    <MeasurementRow
+                      key={measurement.key}
+                      measurement={measurement}
+                      register={register}
+                      watch={watch}
+                      setValue={setValue}
+                      onRemove={() => handleRemoveMeasurement(measurement.key)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* General Comments */}
-        <Card>
-          <CardHeader>
-            <CardTitle>General Comments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <textarea 
-              {...register("generalComments")}
-              className="min-h-[200px] w-full rounded-md border p-2"
-              placeholder="Enter any additional observations or notes..."
-            />
-          </CardContent>
-        </Card>
+      {/* Comments */}
+      <Card>
+        <CardHeader>
+          <CardTitle>General Comments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <textarea
+            {...register('generalComments')}
+            className="w-full min-h-[100px] p-2 rounded-md border"
+          />
+        </CardContent>
+      </Card>
 
-        {/* Submit Button */}
-        <Button type="submit" className="w-full">
-          {id ? 'Update' : 'Submit'} Assessment
-        </Button>
-      </form>
-
-      {/* Missing Fields Dialog */}
-      <AlertDialog open={showMissingFields} onOpenChange={setShowMissingFields}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Review Assessment Details</AlertDialogTitle>
-            <AlertDialogDescription>
-              The following fields need attention:
-              <ul className="list-disc pl-6 mt-2 space-y-1">
-                {missingFields.map((field, index) => (
-                  <li key={index} className="text-sm">{field}</li>
-                ))}
-              </ul>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Review</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                setShowMissingFields(false);
-                if (submissionData) {
-                  if (id) {
-                    updateMutation.mutate({ id, data: submissionData });
-                  } else {
-                    createMutation.mutate(submissionData);
-                  }
-                }
-              }}
-            >
-              Submit Anyway
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      <Button type="submit" className="w-full">
+        {id ? 'Update' : 'Create'} Assessment
+      </Button>
+    </form>
   );
 }
