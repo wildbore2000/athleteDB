@@ -37,13 +37,32 @@ exports.getAssessments = asyncHandler(async (req, res) => {
 });
 
 exports.getAssessment = asyncHandler(async (req, res) => {
+  console.log('Fetching assessment with ID:', req.params.id);
+  
   const assessment = await Assessment.findById(req.params.id)
-    .populate('athlete');
+    .populate('athlete', 'name height weight dateOfBirth age team')
+    .select('assessmentDate measurements generalComments athlete')
+    .lean();
 
   if (!assessment) {
+    console.log('Assessment not found');
     res.status(404);
     throw new Error('Assessment not found');
   }
+
+  console.log('Raw assessment data:', JSON.stringify(assessment, null, 2));
+
+  // Ensure measurements is always at least an empty object
+  if (!assessment.measurements) {
+    assessment.measurements = {};
+  }
+
+  // If measurements is a Map, convert it to an object
+  if (assessment.measurements instanceof Map) {
+    assessment.measurements = Object.fromEntries(assessment.measurements);
+  }
+
+  console.log('Processed assessment data:', JSON.stringify(assessment, null, 2));
 
   res.status(200).json({
     success: true,
@@ -51,8 +70,13 @@ exports.getAssessment = asyncHandler(async (req, res) => {
   });
 });
 
+
 exports.createAssessment = asyncHandler(async (req, res) => {
+  console.log('Creating assessment with data:', JSON.stringify(req.body, null, 2));
+  
   const assessment = await Assessment.create(req.body);
+  
+  console.log('Created assessment:', JSON.stringify(assessment, null, 2));
   
   res.status(201).json({
     success: true,

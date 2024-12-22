@@ -20,7 +20,6 @@ const assessmentSchema = new mongoose.Schema({
     required: [true, 'Assessment date is required'],
     default: Date.now
   },
-  // Dynamic measurements stored as key-value pairs
   measurements: {
     type: Map,
     of: measurementValueSchema
@@ -30,7 +29,9 @@ const assessmentSchema = new mongoose.Schema({
     trim: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true }, // Add this to ensure virtuals are included
+  toObject: { virtuals: true } // Add this to ensure virtuals are included
 });
 
 // Helper method to add a measurement

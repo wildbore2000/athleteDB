@@ -58,69 +58,73 @@ const generateAssessment = (athleteId, date) => {
   const mbShotput = randomInt(190, 225);
   const mbLeadArm = randomInt(155, 185);
 
+  // Create measurements object using the new format
+  const measurements = {
+    // Movement Screen measurements
+    overheadSquat: {
+      scoreLeft: generateScore(),
+      scoreRight: generateScore(),
+      comments: ["Good form", "Needs work on depth", "Watch knee alignment", "Maintain neutral spine"][randomInt(0, 3)]
+    },
+    hurdleStep: {
+      scoreLeft: generateScore(),
+      scoreRight: generateScore(),
+      comments: ["Stable throughout", "Hip rotation needs work", "Good hip mobility", "Watch knee stability"][randomInt(0, 3)]
+    },
+    inlineLunge: {
+      scoreLeft: generateScore(),
+      scoreRight: generateScore(),
+      comments: ["Balanced movement", "Work on stability", "Good control", "Improve hip mobility"][randomInt(0, 3)]
+    },
+    apleyScratch: {
+      scoreLeft: Math.random() < 0.8 ? "pass" : "fail",
+      scoreRight: Math.random() < 0.8 ? "pass" : "fail",
+      comments: ["Full ROM", "Limited upper reach", "Good mobility", "Restricted movement pattern"][randomInt(0, 3)]
+    },
+
+    // Performance measurements
+    verticalJump: {
+      value: verticalJump,
+      attempts: generateAttempts(verticalJump, 1),
+      unit: "in"
+    },
+    broadJump: {
+      value: broadJump,
+      attempts: generateAttempts(broadJump, 2),
+      unit: "in"
+    },
+    tenYardSprint: {
+      value: sprint,
+      attempts: generateAttempts(sprint, 0.03)
+    },
+    ohmbThrow: {
+      value: ohmbThrow,
+      attempts: generateAttempts(ohmbThrow, 6),
+      unit: "in"
+    },
+    mbShotput: {
+      value: mbShotput,
+      attempts: generateAttempts(mbShotput, 5),
+      unit: "in"
+    },
+    mbLeadArm: {
+      value: mbLeadArm,
+      attempts: generateAttempts(mbLeadArm, 4),
+      unit: "in"
+    }
+  };
+
   return {
     athlete: athleteId,
     assessmentDate: date.toISOString().split('T')[0],
-    movementScreen: {
-      overheadSquat: {
-        scoreLeft: generateScore(),
-        scoreRight: generateScore(),
-        comments: ["Good form", "Needs work on depth", "Watch knee alignment", "Maintain neutral spine"][randomInt(0, 3)],
-      },
-      hurdleStep: {
-        scoreLeft: generateScore(),
-        scoreRight: generateScore(),
-        comments: ["Stable throughout", "Hip rotation needs work", "Good hip mobility", "Watch knee stability"][randomInt(0, 3)],
-      },
-      inlineLunge: {
-        scoreLeft: generateScore(),
-        scoreRight: generateScore(),
-        comments: ["Balanced movement", "Work on stability", "Good control", "Improve hip mobility"][randomInt(0, 3)],
-      },
-      apleyScratch: {
-        scoreLeft: Math.random() < 0.8 ? "pass" : "fail",
-        scoreRight: Math.random() < 0.8 ? "pass" : "fail",
-        comments: ["Full ROM", "Limited upper reach", "Good mobility", "Restricted movement pattern"][randomInt(0, 3)],
-      },
-    },
-    performance: {
-      verticalJump: {
-        value: verticalJump,
-        attempts: generateAttempts(verticalJump, 1),
-        unit: "in",
-      },
-      broadJump: {
-        value: broadJump,
-        attempts: generateAttempts(broadJump, 2),
-        unit: "in",
-      },
-      tenYardSprint: {
-        value: sprint,
-        attempts: generateAttempts(sprint, 0.03),
-      },
-      ohmbThrow: {
-        value: ohmbThrow,
-        attempts: generateAttempts(ohmbThrow, 6),
-        unit: "in",
-      },
-      mbShotput: {
-        value: mbShotput,
-        attempts: generateAttempts(mbShotput, 5),
-        unit: "in",
-      },
-      mbLeadArm: {
-        value: mbLeadArm,
-        attempts: generateAttempts(mbLeadArm, 4),
-        unit: "in",
-      },
-    },
+    measurements: measurements,
     generalComments: [
       "Strong overall performance. Focus on mobility work.",
       "Good progress shown. Continue with current program.",
       "Shows potential. Need to address movement patterns.",
       "Consistent improvement across all areas.",
       "Some asymmetries noted. Implement corrective exercises.",
-    ][randomInt(0, 4)],
+    ][randomInt(0, 4)]
   };
 };
 
@@ -135,7 +139,7 @@ async function importData() {
     console.log("Cleared existing data");
 
     // Generate athletes
-    const athletes = Array(100)
+    const athletes = Array(40)
       .fill(null)
       .map(() => generateAthleteData());
 
