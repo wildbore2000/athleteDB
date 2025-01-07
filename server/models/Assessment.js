@@ -49,6 +49,7 @@ assessmentSchema.methods.getMeasurement = function(key) {
 
 // Pre-save middleware to ensure measurements align with MeasurementType schema
 assessmentSchema.pre('save', async function(next) {
+  console.log('Pre-save measurements:', this.measurements);
   try {
     const MeasurementType = mongoose.model('MeasurementType');
     const measurements = Array.from(this.measurements.entries());

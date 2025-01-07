@@ -72,11 +72,11 @@ exports.getAssessment = asyncHandler(async (req, res) => {
 
 
 exports.createAssessment = asyncHandler(async (req, res) => {
-  console.log('Creating assessment with data:', JSON.stringify(req.body, null, 2));
+  console.log('Raw request body:', req.body);
+  console.log('Measurements structure:', req.body.measurements);
   
   const assessment = await Assessment.create(req.body);
-  
-  console.log('Created assessment:', JSON.stringify(assessment, null, 2));
+  console.log('Saved assessment:', assessment);
   
   res.status(201).json({
     success: true,

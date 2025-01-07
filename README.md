@@ -1,103 +1,106 @@
 # AthleteDB
 
-A MERN stack application for tracking and managing athlete assessments and performance metrics.
+Performance assessment and tracking system for athletes built with MERN stack.
 
 ## Features
 
-- Create, read, update, and delete athlete assessments
-- Track movement screens and performance measurements
-- Modern, responsive UI built with React and Tailwind CSS
-- RESTful API backend with Express and MongoDB
+- Athlete profiles with demographic data
+- Movement screen assessments
+- Performance measurements and tracking
+- Analytics and trend visualization
+- Customizable measurement types
+- Mobile-responsive design
 
 ## Tech Stack
 
-- **Frontend:**
-  - React
-  - React Router DOM
-  - React Hook Form
-  - Tailwind CSS
-  - shadcn/ui components
+### Frontend
+- React 18
+- TanStack Query for data management
+- React Router DOM v6
+- React Hook Form
+- Tailwind CSS
+- shadcn/ui components
+- Recharts for data visualization
 
-- **Backend:**
-  - Node.js
-  - Express
-  - MongoDB
-  - Mongoose
+### Backend
+- Node.js/Express
+- MongoDB with Mongoose
+- RESTful API
+- Async error handling
 
-## Getting Started
+## Installation
 
-### Prerequisites
-
-- Node.js
-- MongoDB
-
-### Installation
-
-1. Clone the repository:
+1. Clone and install dependencies:
 ```bash
 git clone https://github.com/YOUR_USERNAME/athleteDB.git
 cd athleteDB
-```
 
-2. Install server dependencies:
-```bash
+# Install server dependencies
 cd server
 npm install
-```
 
-3. Install client dependencies:
-```bash
+# Install client dependencies
 cd ../client
 npm install
 ```
 
-4. Create a .env file in the server directory:
-```
+2. Configure environment:
+```bash
+# In server/.env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/athleteDB
 ```
 
-5. Start the development servers:
-
-In the server directory:
+3. Start development servers:
 ```bash
+# Start backend (from server/)
+npm run dev
+
+# Start frontend (from client/)
 npm start
 ```
 
-In the client directory:
-```bash
-npm start
-```
-
-The application will be available at `http://localhost:3000`
+Access at `http://localhost:3000`
 
 ## API Endpoints
 
-- GET `/api/assessments` - Get all assessments
-- POST `/api/assessments` - Create new assessment
-- GET `/api/assessments/:id` - Get single assessment
-- PUT `/api/assessments/:id` - Update assessment
-- DELETE `/api/assessments/:id` - Delete assessment
+### Athletes
+- `GET /api/athletes` - List athletes
+- `GET /api/athletes/:id` - Get athlete details
+- `POST /api/athletes` - Create athlete
+- `PUT /api/athletes/:id` - Update athlete
+- `DELETE /api/athletes/:id` - Delete athlete
+- `GET /api/athletes/:id/statistics` - Get athlete stats
+- `GET /api/athletes/:id/trends` - Get performance trends
+
+### Assessments
+- `GET /api/assessments` - List assessments
+- `GET /api/assessments/:id` - Get assessment details
+- `POST /api/assessments` - Create assessment
+- `PUT /api/assessments/:id` - Update assessment
+- `DELETE /api/assessments/:id` - Delete assessment
+
+### Measurement Types
+- `GET /api/measurement-types` - List measurement types
+- `POST /api/measurement-types` - Create measurement type
+- `PUT /api/measurement-types/:id` - Update measurement type
+- `DELETE /api/measurement-types/:id` - Delete measurement type
+- `POST /api/measurement-types/reinitialize-defaults` - Reset default types
 
 ## Project Structure
 
 ```
 athleteDB/
-├── client/              # React frontend
-│   ├── public/
-│   └── src/
-│       ├── components/  # React components
-│       └── lib/         # Utility functions
-└── server/             # Express backend
-    ├── controllers/    # Route controllers
-    ├── models/         # Mongoose models
-    └── routes/         # Express routes
+├── client/                # React frontend
+│   ├── src/
+│   │   ├── components/    # React components
+│   │   ├── hooks/        # Custom hooks
+│   │   ├── services/     # API services
+│   │   └── lib/          # Utilities
+│   └── public/           # Static assets
+└── server/               # Express backend
+    ├── controllers/      # Route controllers
+    ├── models/          # Mongoose models
+    ├── routes/          # API routes
+    └── config/          # Configuration
 ```
-
-## Future Enhancements
-
-- User authentication
-- Data visualization
-- Export functionality
-- Advanced search and filtering
-- Performance analytics

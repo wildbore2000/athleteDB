@@ -7,8 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Plus, X } from "lucide-react";
-import { assessmentApi, athleteApi, measurementTypeApi } from '../services/api';
+import { X } from "lucide-react";
+import { assessmentApi, measurementTypeApi } from '../services/api';
 
 const MeasurementRow = ({ measurement, register, watch, setValue, onRemove }) => {
   // Helper function to render score/value input based on type
@@ -173,40 +173,38 @@ export default function AssessmentForm() {
   useEffect(() => {
     if (assessmentData?.data) {
       const assessment = assessmentData.data;
-      
-      // Format date to YYYY-MM-DD
       const formattedDate = new Date(assessment.assessmentDate)
         .toISOString()
         .split('T')[0];
-
-      // Convert measurements Map to object if needed
+  
       const measurementsData = assessment.measurements instanceof Map 
         ? Object.fromEntries(assessment.measurements)
         : assessment.measurements || {};
-
-      // Set form data
+  
       reset({
         assessmentDate: formattedDate,
         generalComments: assessment.generalComments || '',
         measurements: measurementsData
       });
-
-      // Update selected measurements
+  
       if (measurementsData) {
-        setSelectedMeasurements(new Set([
-          ...Array.from(selectedMeasurements),
+        setSelectedMeasurements(prev => new Set([
+          ...Array.from(prev),
           ...Object.keys(measurementsData)
         ]));
       }
-
-      console.log('Loaded measurements:', measurementsData); // Debug log
+  
+      console.log('Loaded measurements:', measurementsData);
     }
   }, [assessmentData, reset]);
 
   // Add default measurements initially
   useEffect(() => {
-    const defaults = measurementTypes.filter(m => m.isDefault);
-    setSelectedMeasurements(new Set(defaults.map(m => m.key)));
+    if (measurementTypes.length > 0) {
+      const defaults = measurementTypes.filter(m => m.isDefault);
+      const defaultKeys = defaults.map(m => m.key);
+      setSelectedMeasurements(new Set(defaultKeys));
+    }
   }, [measurementTypes]);
 
   const handleAddMeasurement = (measurementKey) => {
@@ -222,40 +220,46 @@ export default function AssessmentForm() {
 
   const onSubmit = async (data) => {
     try {
-      // Filter out empty measurements and format the data
       const measurements = Object.entries(data.measurements)
-        .filter(([key]) => selectedMeasurements.has(key))
+      .filter(([key]) => {
+        const value = data.measurements[key];
+        console.log('Checking measurement:', key, value);
+        
+        // For score-based measurements
+        if (value.scoreLeft || value.scoreRight) {
+          return true;
+        }
+        
+        // For performance measurements
+        if (value.value || (value.attempts && value.attempts.some(a => a))) {
+          return true;
+        }
+        
+        return false;
+      })
         .reduce((acc, [key, value]) => {
-          // Remove any empty or undefined values
-          const cleanedValue = Object.entries(value).reduce((obj, [k, v]) => {
-            if (v !== undefined && v !== '' && v !== null) {
-              obj[k] = v;
-            }
-            return obj;
-          }, {});
+          // Keep original key case
+          const cleanedValue = {};
+          if (value.value) cleanedValue.value = value.value;
+          if (value.scoreLeft) cleanedValue.scoreLeft = value.scoreLeft;
+          if (value.scoreRight) cleanedValue.scoreRight = value.scoreRight;
+          if (value.attempts?.some(a => a)) cleanedValue.attempts = value.attempts;
+          if (value.comments?.trim()) cleanedValue.comments = value.comments;
           
-          // Only include the measurement if it has actual data
-          if (Object.keys(cleanedValue).length > 0) {
-            acc[key] = cleanedValue;
-          }
+          acc[key] = cleanedValue;
           return acc;
         }, {});
-
-      const formData = {
-        ...data,
-        athlete: athleteId,
-        measurements
-      };
-
-      console.log('Submitting data:', formData); // Debug log
-
+  
+      const formData = { ...data, athlete: athleteId, measurements };
+      console.log('Cleaned data for API:', formData);
+  
       if (id) {
         await assessmentApi.updateAssessment(id, formData);
       } else {
         await assessmentApi.createAssessment(formData);
-      
-      navigate(athleteId ? `/athletes/${athleteId}/assessments` : '/assessments');
       }
+    
+      navigate(athleteId ? `/athletes/${athleteId}/assessments` : '/assessments');
     } catch (error) {
       console.error('Error saving assessment:', error);
     }
