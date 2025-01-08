@@ -6,6 +6,7 @@ import { assessmentApi, measurementTypeApi } from '../services/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { useAssessment } from '../hooks';
 
 const MeasurementDisplay = ({ measurement, value, measurementType }) => {
   const renderValue = () => {
@@ -50,17 +51,43 @@ export default function AssessmentDetail() {
   const navigate = useNavigate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Fetch assessment data
-  const { data: assessmentData, isLoading } = useQuery({
-    queryKey: ['assessment', id],
-    queryFn: () => assessmentApi.getAssessment(id)
-  });
+  const { data: assessmentData, isLoading } = useAssessment(id);
 
   // Fetch measurement types
   const { data: measurementTypes = [] } = useQuery({
     queryKey: ['measurementTypes'],
     queryFn: () => measurementTypeApi.getMeasurementTypes()
   });
+
+  // Move useMemo here, before any conditional returns
+  const groupedMeasurements = React.useMemo(() => {
+    const grouped = {
+      movementScreen: [],
+      performance: []
+    };
+
+    // Only process if we have assessment data
+    if (assessmentData?.data?.measurements) {
+      const measurements = assessmentData.data.measurements;
+      // Handle both Map and plain object formats
+      const measurementsEntries = measurements instanceof Map
+        ? Array.from(measurements.entries())
+        : Object.entries(measurements);
+
+      measurementsEntries.forEach(([key, value]) => {
+        const measurementType = measurementTypes.find(m => m.key === key);
+        if (measurementType) {
+          grouped[measurementType.category].push({
+            key,
+            value,
+            type: measurementType
+          });
+        }
+      });
+    }
+
+    return grouped;
+  }, [assessmentData?.data?.measurements, measurementTypes]);
 
   const handleDelete = async () => {
     try {
@@ -79,34 +106,6 @@ export default function AssessmentDetail() {
   if (!assessmentData?.data) return <div>Assessment not found</div>;
 
   const assessment = assessmentData.data;
-
-  // Group measurements by category
-  const groupedMeasurements = React.useMemo(() => {
-    const grouped = {
-      movementScreen: [],
-      performance: []
-    };
-
-    if (assessment.measurements) {
-      // Handle both Map and plain object formats
-      const measurementsEntries = assessment.measurements instanceof Map
-        ? Array.from(assessment.measurements.entries())
-        : Object.entries(assessment.measurements);
-
-      measurementsEntries.forEach(([key, value]) => {
-        const measurementType = measurementTypes.find(m => m.key === key);
-        if (measurementType) {
-          grouped[measurementType.category].push({
-            key,
-            value,
-            type: measurementType
-          });
-        }
-      });
-    }
-
-    return grouped;
-  }, [assessment.measurements, measurementTypes]);
 
   return (
     <>
