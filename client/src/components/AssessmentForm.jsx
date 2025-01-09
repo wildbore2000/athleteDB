@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { assessmentApi, measurementTypeApi } from '../services/api';
 
 const MeasurementRow = ({ measurement, register, watch, setValue, onRemove }) => {
@@ -285,129 +285,154 @@ export default function AssessmentForm() {
   if (id && isLoadingAssessment) {
     return <div>Loading...</div>;
   }
+ // Filter available measurements by category
+ const getAvailableMeasurements = (category) => {
+  return measurementTypes
+    .filter(m => !selectedMeasurements.has(m.key) && m.category === category);
+};
 
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Assessment Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-between gap-4">
-            <div className="flex-1">
-              <Input
-                type="date"
-                {...register('assessmentDate')}
-                required
-              />
-            </div>
-            <div>
-              <Select onValueChange={handleAddMeasurement}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Add Measurement" />
-                </SelectTrigger>
-                <SelectContent>
-                  {measurementTypes
-                    .filter(m => !selectedMeasurements.has(m.key))
-                    .map(m => (
-                      <SelectItem key={m.key} value={m.key}>
-                        {m.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+return (
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    {/* Basic Information */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Assessment Details</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Input
+          type="date"
+          {...register('assessmentDate')}
+          required
+        />
+      </CardContent>
+    </Card>
+
+    {/* Movement Screen */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Movement Screen</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {groupedMeasurements.movementScreen.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border p-2 text-left">Movement</th>
+                  <th className="border p-2">Left Side</th>
+                  <th className="border p-2">Right Side</th>
+                  <th className="border p-2">Comments</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupedMeasurements.movementScreen.map(measurement => (
+                  <MeasurementRow
+                    key={measurement.key}
+                    measurement={measurement}
+                    register={register}
+                    watch={watch}
+                    setValue={setValue}
+                    onRemove={() => handleRemoveMeasurement(measurement.key)}
+                  />
+                ))}
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
+        )}
+        
+        {getAvailableMeasurements('movementScreen').length > 0 && (
+          <Select onValueChange={handleAddMeasurement}>
+            <SelectTrigger>
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  <span>Add Movement Screen</span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {getAvailableMeasurements('movementScreen').map(m => (
+                <SelectItem key={m.key} value={m.key}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </CardContent>
+    </Card>
 
-      {/* Movement Screen */}
-      {groupedMeasurements.movementScreen.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Movement Screen</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border p-2 text-left">Movement</th>
-                    <th className="border p-2">Left Side</th>
-                    <th className="border p-2">Right Side</th>
-                    <th className="border p-2">Comments</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupedMeasurements.movementScreen.map(measurement => (
-                    <MeasurementRow
-                      key={measurement.key}
-                      measurement={measurement}
-                      register={register}
-                      watch={watch}
-                      setValue={setValue}
-                      onRemove={() => handleRemoveMeasurement(measurement.key)}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+    {/* Performance Measurements */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Performance Measurements</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {groupedMeasurements.performance.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border p-2 text-left">Measurement</th>
+                  <th className="border p-2">Best</th>
+                  <th className="border p-2" colSpan={2}>Attempts</th>
+                  <th className="border p-2">Comments</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupedMeasurements.performance.map(measurement => (
+                  <MeasurementRow
+                    key={measurement.key}
+                    measurement={measurement}
+                    register={register}
+                    watch={watch}
+                    setValue={setValue}
+                    onRemove={() => handleRemoveMeasurement(measurement.key)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        {getAvailableMeasurements('performance').length > 0 && (
+          <Select onValueChange={handleAddMeasurement}>
+            <SelectTrigger>
+              <SelectValue>
+                <div className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  <span>Add Performance Measurement</span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {getAvailableMeasurements('performance').map(m => (
+                <SelectItem key={m.key} value={m.key}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </CardContent>
+    </Card>
 
-      {/* Performance Measurements */}
-      {groupedMeasurements.performance.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Performance Measurements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border p-2 text-left">Measurement</th>
-                    <th className="border p-2">Best</th>
-                    <th className="border p-2" colSpan={2}>Attempts</th>
-                    <th className="border p-2">Comments</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupedMeasurements.performance.map(measurement => (
-                    <MeasurementRow
-                      key={measurement.key}
-                      measurement={measurement}
-                      register={register}
-                      watch={watch}
-                      setValue={setValue}
-                      onRemove={() => handleRemoveMeasurement(measurement.key)}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+    {/* Comments */}
+    <Card>
+      <CardHeader>
+        <CardTitle>General Comments</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <textarea
+          {...register('generalComments')}
+          className="w-full min-h-[100px] p-2 rounded-md border"
+        />
+      </CardContent>
+    </Card>
 
-      {/* Comments */}
-      <Card>
-        <CardHeader>
-          <CardTitle>General Comments</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <textarea
-            {...register('generalComments')}
-            className="w-full min-h-[100px] p-2 rounded-md border"
-          />
-        </CardContent>
-      </Card>
-
-      <Button type="submit" className="w-full">
-        {id ? 'Update' : 'Create'} Assessment
-      </Button>
-    </form>
-  );
+    <Button type="submit" className="w-full">
+      {id ? 'Update' : 'Create'} Assessment
+    </Button>
+  </form>
+);
 }

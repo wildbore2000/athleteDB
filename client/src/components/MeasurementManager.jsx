@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, X, Trash2, Settings2, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Settings2, RefreshCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -34,7 +34,7 @@ import {
   AlertDialogTitle,
 } from "./ui/alert-dialog";
 
-const MeasurementForm = ({ initialData, onSubmit }) => {
+const MeasurementForm = ({ initialData, onSubmit, setOpen }) => {
   const [formData, setFormData] = useState(initialData || {
     name: '',
     key: '',
@@ -79,13 +79,37 @@ const MeasurementForm = ({ initialData, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.key) {
-      formData.key = formData.name.toLowerCase().replace(/\s+/g, '');
+    try {
+      const dataToSubmit = { ...formData };
+      
+      // Validate required unit for specific types
+      if (['strength', 'distance', 'speed'].includes(dataToSubmit.type) && !dataToSubmit.unit) {
+        alert(`Please specify a unit for ${dataToSubmit.type} measurement (e.g., lbs, inches, mph)`);
+        return;
+      }
+
+      if (!dataToSubmit.key) {
+        dataToSubmit.key = dataToSubmit.name.toLowerCase().replace(/\s+/g, '');
+      }
+      
+      if (dataToSubmit.category === 'performance') {
+        dataToSubmit.config = {
+          ...dataToSubmit.config,
+          hasAttempts: Boolean(dataToSubmit.config.hasAttempts),
+          maxAttempts: dataToSubmit.config.hasAttempts ? 
+            parseInt(dataToSubmit.config.maxAttempts) || 3 : 0,
+          hasSides: Boolean(dataToSubmit.config.hasSides)
+        };
+      }
+
+      await onSubmit(dataToSubmit);
+      setOpen(false);
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to save measurement. Please try again.');
     }
-    console.log('Form Submitted:', formData);
-    onSubmit(formData);
   };
 
   return (
@@ -241,6 +265,8 @@ const MeasurementForm = ({ initialData, onSubmit }) => {
 const MeasurementManager = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [editingMeasurement, setEditingMeasurement] = useState(null);
   const queryClient = useQueryClient();
 
 
@@ -288,6 +314,10 @@ const MeasurementManager = () => {
     setShowResetConfirm(false);
     reinitializeMutation.mutate();
   };
+  
+  const handleEditClick = (measurement) => {
+    setEditingMeasurement(measurement);
+  };
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -311,7 +341,7 @@ const MeasurementManager = () => {
             )} />
             {reinitializeMutation.isLoading ? 'Reinitializing...' : 'Reinitialize Defaults'}
           </Button>
-          <Dialog>
+          <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -339,7 +369,15 @@ const MeasurementManager = () => {
                     maxAttempts: 3
                   }
                 }}
-                onSubmit={(data) => createMutation.mutate(data)} 
+                onSubmit={async (data) => {
+                  try {
+                    await createMutation.mutateAsync(data);
+                    setShowAddDialog(false);  // Close dialog after successful mutation
+                  } catch (error) {
+                    console.error('Submission error:', error);
+                  }
+                }}
+                setOpen={setShowAddDialog}
               />
             </DialogContent>
           </Dialog>
@@ -365,9 +403,12 @@ const MeasurementManager = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Dialog>
+                  <Dialog 
+                    open={editingMeasurement?._id === measurement._id} 
+                    onOpenChange={(open) => !open && setEditingMeasurement(null)}
+                  >
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" onClick={() => handleEditClick(measurement)}>
                         <Settings2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
@@ -377,10 +418,18 @@ const MeasurementManager = () => {
                       </DialogHeader>
                       <MeasurementForm 
                         initialData={measurement}
-                        onSubmit={(data) => updateMutation.mutate({ 
-                          id: measurement._id, 
-                          data 
-                        })}
+                        onSubmit={async (data) => {
+                          try {
+                            await updateMutation.mutateAsync({ 
+                              id: measurement._id, 
+                              data 
+                            });
+                            setEditingMeasurement(null);  // Close dialog after successful update
+                          } catch (error) {
+                            console.error('Update error:', error);
+                          }
+                        }}
+                        setOpen={() => setEditingMeasurement(null)}
                       />
                     </DialogContent>
                   </Dialog>
@@ -398,7 +447,7 @@ const MeasurementManager = () => {
         </CardContent>
       </Card>
 
-      {/* Performance Measurements Section */}
+      {/* Performance Measurements Section - Similar updates needed */}
       <Card>
         <CardHeader>
           <CardTitle>Performance Measurements</CardTitle>
@@ -418,9 +467,12 @@ const MeasurementManager = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Dialog>
+                  <Dialog 
+                    open={editingMeasurement?._id === measurement._id}
+                    onOpenChange={(open) => !open && setEditingMeasurement(null)}
+                  >
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" onClick={() => handleEditClick(measurement)}>
                         <Settings2 className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
@@ -430,10 +482,18 @@ const MeasurementManager = () => {
                       </DialogHeader>
                       <MeasurementForm 
                         initialData={measurement}
-                        onSubmit={(data) => updateMutation.mutate({ 
-                          id: measurement._id, 
-                          data 
-                        })}
+                        onSubmit={async (data) => {
+                          try {
+                            await updateMutation.mutateAsync({ 
+                              id: measurement._id, 
+                              data 
+                            });
+                            setEditingMeasurement(null);  // Close dialog after successful update
+                          } catch (error) {
+                            console.error('Update error:', error);
+                          }
+                        }}
+                        setOpen={() => setEditingMeasurement(null)}
                       />
                     </DialogContent>
                   </Dialog>
@@ -451,7 +511,7 @@ const MeasurementManager = () => {
         </CardContent>
       </Card>
 
-      {/* Reset Confirmation Dialog */}
+      {/* Alert Dialogs remain the same */}
       <AlertDialog open={showResetConfirm} onOpenChange={setShowResetConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -470,7 +530,6 @@ const MeasurementManager = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
